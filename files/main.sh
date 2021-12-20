@@ -40,9 +40,9 @@ for j in $(seq 1 $max_cluster); do
 	progress1="Processing part "$kconf" out of "$num_boxes
 	progress2="Clustering round "$j" out of "$max_cluster
 	echo ""
-	echo "Dowser++, software for hydrating protein structures"
+	echo "Dowser with Caver, software for hydrating tunnels in protein structures"
 	echo ""
-	echo "Made by Alexander Morozenko at University of California, Davis"
+	echo "Made by Alexander Morozenko, modified by Panyue Wang at University of California, Davis"
 	echo ""
 	echo ""
 	echo $progress1
