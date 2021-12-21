@@ -31,6 +31,7 @@ fi
 
 ./conf $box_size
 
+# read box number into the variable num_boxes
 read num_boxes<box_number.txt
 max_cluster=3
 
