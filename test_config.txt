@@ -1,0 +1,12 @@
+receptor = files/4hea_Q_cav_with_protonated_E_channel_Q10_boxed.pdbqt
+ligand = files/water.pdbqt
+
+center_x = -77.335
+center_y = -6.736
+center_z = -33.541
+
+size_x = 6
+size_y = 6
+size_z = 6
+
+energy_range = 4
