@@ -19,6 +19,9 @@ def csv_to_tunnel_points_arrays(tunnel_csv):
 
     return tunnel_points
 
+def tunnel_points_to_box_configs(tunnel_points):
+    pass
+
 if __name__ == "__main__":
     tunnel_csv = sys.argv[1]
     pass
