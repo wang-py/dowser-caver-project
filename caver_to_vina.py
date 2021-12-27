@@ -3,14 +3,24 @@ import pandas as pd
 import sys
 import os
 
-#TODO: a function that scans the tunnel profiles csv and chooses a certain 
-#tunnel. This function should output an array of coordinates and sizes.
-
-#TODO: a function that reads the output of the above function, then outputs
-#a series of config files for AutoDock Vina. Default box size is 6, but it
-#could be customized to each sphere's size.
-
 def csv_to_tunnel_points_arrays(tunnel_csv, tunnel_index):
+    """
+    a function that scans the tunnel profiles csv and chooses a certain 
+    tunnel. This function should output an array of coordinates and sizes.
+    ---------------------------------------------------------------------------
+    tunnel_csv: str
+    filename of the tunnel profile csv
+
+    tunnel_index: int
+    index of the chosen tunnel
+
+    ----------------------------------------------------------------------------
+    Returns:
+    tunnel_points: ndarray
+    3 x n numpy array of tunnel point coordinates
+
+    """
+
     # skips information before coordinates
     skip_cols = 13
     # only takes coordinates of that tunnel
@@ -24,6 +34,22 @@ def csv_to_tunnel_points_arrays(tunnel_csv, tunnel_index):
     return tunnel_points[:, skip_cols:].astype(float)
 
 def tunnel_points_to_box_configs(tunnel_points, output_folder):
+    """
+    a function that reads the output of the above function, then outputs
+    a series of config files for AutoDock Vina. Default box size is 6, but it
+    could be customized to each sphere's size.
+    ----------------------------------------------------------------------------
+    tunnel_points: 3 x n ndarray
+    array of tunnel point coordinates
+
+    output_folder: str
+    folder to store the temporary box configs for Autodock Vina
+
+    ----------------------------------------------------------------------------
+    Returns:
+    None
+    """
+
     num_of_pts = tunnel_points.shape[1]
     receptor = "files/cavity_subunits.pdbqt"
     ligand = "files/water.pdbqt"
