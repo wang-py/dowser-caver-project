@@ -52,7 +52,10 @@ if __name__ == "__main__":
     tunnel_csv = sys.argv[1]
     tunnel_index = int(sys.argv[2])
     output_folder = "boxes"
-    os.mkdir(output_folder)
+    try:
+        os.mkdir(output_folder)
+    except OSError as error:
+        print("folder " + output_folder + " was already created.\n")
     tp = csv_to_tunnel_points_arrays(tunnel_csv, tunnel_index)
     tunnel_points_to_box_configs(tp, output_folder)
     pass
