@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import sys
 import os
+import subprocess
 
 def csv_to_tunnel_points_arrays(tunnel_csv, tunnel_index):
     """
@@ -84,4 +85,19 @@ if __name__ == "__main__":
         print("folder " + output_folder + " was already created.\n")
     tp = csv_to_tunnel_points_arrays(tunnel_csv, tunnel_index)
     tunnel_points_to_box_configs(tp, output_folder)
+    num_of_pts = tp.shape[1]
+    final_output_name = "AllPredictions.pdbqt"
+    for i in range(num_of_pts):
+        prediction_filename = output_folder + "/point_%s.pdbqt"%str(i)
+        vina_args = ("./vina", "--config", output_folder + "/box_%s.txt"%str(i), \
+            "--out", prediction_filename)
+        popen = subprocess.Popen(vina_args, stdout=subprocess.PIPE)
+        popen.wait()
+        output = popen.stdout.read()
+        print(output)
+        # grepping the results
+        grep_args = ("grep", "ATOM", prediction_filename, ">", "temp.pdbqt")
+        # concatenate all predictions into one file
+        cat_args = ("cat", "temp.pdbqt", ">>", final_output_name)
+
     pass
