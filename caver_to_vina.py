@@ -97,7 +97,15 @@ if __name__ == "__main__":
         print(output)
         # grepping the results
         grep_args = ("grep", "ATOM", prediction_filename, ">", "temp.pdbqt")
+        popen = subprocess.Popen(grep_args, stdout=subprocess.PIPE)
+        popen.wait()
+        output = popen.stdout.read()
+        print(output)
         # concatenate all predictions into one file
         cat_args = ("cat", "temp.pdbqt", ">>", final_output_name)
+        popen = subprocess.Popen(cat_args, stdout=subprocess.PIPE)
+        popen.wait()
+        output = popen.stdout.read()
+        print(output)
 
     pass
