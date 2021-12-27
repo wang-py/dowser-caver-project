@@ -1,3 +1,4 @@
+from typing import final
 import numpy as np
 import pandas as pd
 import sys
@@ -96,16 +97,13 @@ if __name__ == "__main__":
         output = popen.stdout.read()
         print(output)
         # grepping the results
-        grep_args = ("grep", "ATOM", prediction_filename, ">", "temp.pdbqt")
+        grep_args = ("grep", "ATOM", prediction_filename)
         popen = subprocess.Popen(grep_args, stdout=subprocess.PIPE)
         popen.wait()
         output = popen.stdout.read()
-        print(output)
         # concatenate all predictions into one file
-        cat_args = ("cat", "temp.pdbqt", ">>", final_output_name)
-        popen = subprocess.Popen(cat_args, stdout=subprocess.PIPE)
-        popen.wait()
-        output = popen.stdout.read()
+        with open(output_folder+"/"+final_output_name, 'a+') as buffer:
+            buffer.writelines(output)
         print(output)
 
     pass
