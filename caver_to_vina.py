@@ -1,3 +1,4 @@
+from _typeshed import OpenBinaryModeUpdating
 from typing import final
 import numpy as np
 import pandas as pd
@@ -87,9 +88,10 @@ if __name__ == "__main__":
     tp = csv_to_tunnel_points_arrays(tunnel_csv, tunnel_index)
     tunnel_points_to_box_configs(tp, output_folder)
     num_of_pts = tp.shape[1]
-    final_output_name = "AllPredictions.pdbqt"
+    final_output_name = output_folder + "/AllPredictions.pdbqt"
     for i in range(num_of_pts):
         prediction_filename = output_folder + "/point_%s.pdbqt"%str(i)
+        prediction_temp = []
         vina_args = ("./vina", "--config", output_folder + "/box_%s.txt"%str(i), \
             "--out", prediction_filename)
         popen = subprocess.Popen(vina_args, stdout=subprocess.PIPE)
@@ -97,13 +99,13 @@ if __name__ == "__main__":
         output = popen.stdout.read()
         print(output)
         # grepping the results
-        grep_args = ("grep", "ATOM", prediction_filename)
-        popen = subprocess.Popen(grep_args, stdout=subprocess.PIPE)
-        popen.wait()
-        output = popen.stdout.read()
+        with open(prediction_filename, 'r') as pf:
+            for line in pf:
+                if "ATOM" in line:
+                    prediction_temp.append(line)
+
         # concatenate all predictions into one file
-        with open(output_folder+"/"+final_output_name, 'a+') as buffer:
-            buffer.writelines(output)
-        print(output)
+        with open(final_output_name, 'a+') as fo:
+            fo.writelines(prediction_temp)
 
     pass
