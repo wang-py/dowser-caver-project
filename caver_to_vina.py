@@ -1,5 +1,3 @@
-from _typeshed import OpenBinaryModeUpdating
-from typing import final
 import numpy as np
 import pandas as pd
 import sys
@@ -97,7 +95,7 @@ if __name__ == "__main__":
         popen = subprocess.Popen(vina_args, stdout=subprocess.PIPE)
         popen.wait()
         output = popen.stdout.read()
-        print(output)
+        print(output.decode("utf-8"))
         # grepping the results
         with open(prediction_filename, 'r') as pf:
             for line in pf:
