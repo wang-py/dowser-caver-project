@@ -56,7 +56,7 @@ def tunnel_points_to_box_configs(tunnel_points, output_folder):
     ligand = "files/water.pdbqt"
     energy_range = 100
     size = 6
-    exhaustiveness = 20
+    exhaustiveness = 32
     for i in range(num_of_pts):
         tp = tunnel_points[:,i]
         with open(output_folder + "/box_" + str(i) + ".txt", 'w') as file:
