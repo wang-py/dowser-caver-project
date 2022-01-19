@@ -1,0 +1,135 @@
+MODEL 1
+REMARK VINA RESULT:    -0.224      0.000      0.000
+REMARK INTER + INTRA:          -0.224
+REMARK INTER:                  -0.224
+REMARK INTRA:                   0.000
+REMARK UNBOUND:                 0.000
+REMARK  0 active torsions:
+REMARK  status: ('A' for Active; 'I' for Inactive)
+ROOT
+ATOM      1  OW  HOH   231      -0.553  12.502  18.748  1.00  0.00    -0.411 OA
+ATOM      2  HW1 HOH   231      -0.691  12.252  17.790  1.00  0.00     0.205 HD
+ATOM      3  HW2 HOH   231      -1.418  12.419  19.242  1.00  0.00     0.205 HD
+ENDROOT
+TORSDOF 0
+ENDMDL
+MODEL 2
+REMARK VINA RESULT:    -0.224      3.005      3.005
+REMARK INTER + INTRA:          -0.224
+REMARK INTER:                  -0.224
+REMARK INTRA:                   0.000
+REMARK UNBOUND:                 0.000
+REMARK  0 active torsions:
+REMARK  status: ('A' for Active; 'I' for Inactive)
+ROOT
+ATOM      1  OW  HOH   231       2.453  12.502  18.748  1.00  0.00    -0.411 OA
+ATOM      2  HW1 HOH   231       1.578  12.905  18.482  1.00  0.00     0.205 HD
+ATOM      3  HW2 HOH   231       2.990  12.302  17.929  1.00  0.00     0.205 HD
+ENDROOT
+TORSDOF 0
+ENDMDL
+MODEL 3
+REMARK VINA RESULT:    -0.224      2.492      2.492
+REMARK INTER + INTRA:          -0.224
+REMARK INTER:                  -0.224
+REMARK INTRA:                   0.000
+REMARK UNBOUND:                 0.000
+REMARK  0 active torsions:
+REMARK  status: ('A' for Active; 'I' for Inactive)
+ROOT
+ATOM      1  OW  HOH   231      -1.304  10.248  17.997  1.00  0.00    -0.411 OA
+ATOM      2  HW1 HOH   231      -0.992  11.006  17.426  1.00  0.00     0.205 HD
+ATOM      3  HW2 HOH   231      -1.381  10.555  18.945  1.00  0.00     0.205 HD
+ENDROOT
+TORSDOF 0
+ENDMDL
+MODEL 4
+REMARK VINA RESULT:    -0.224      5.068      5.068
+REMARK INTER + INTRA:          -0.224
+REMARK INTER:                  -0.224
+REMARK INTRA:                   0.000
+REMARK UNBOUND:                 0.000
+REMARK  0 active torsions:
+REMARK  status: ('A' for Active; 'I' for Inactive)
+ROOT
+ATOM      1  OW  HOH   231       3.204  12.878  15.367  1.00  0.00    -0.411 OA
+ATOM      2  HW1 HOH   231       3.387  13.644  15.982  1.00  0.00     0.205 HD
+ATOM      3  HW2 HOH   231       4.033  12.330  15.261  1.00  0.00     0.205 HD
+ENDROOT
+TORSDOF 0
+ENDMDL
+MODEL 5
+REMARK VINA RESULT:    -0.224      5.697      5.697
+REMARK INTER + INTRA:          -0.224
+REMARK INTER:                  -0.224
+REMARK INTRA:                   0.000
+REMARK UNBOUND:                 0.000
+REMARK  0 active torsions:
+REMARK  status: ('A' for Active; 'I' for Inactive)
+ROOT
+ATOM      1  OW  HOH   231       2.077   9.121  14.991  1.00  0.00    -0.411 OA
+ATOM      2  HW1 HOH   231       1.623   8.404  15.519  1.00  0.00     0.205 HD
+ATOM      3  HW2 HOH   231       1.426   9.525  14.350  1.00  0.00     0.205 HD
+ENDROOT
+TORSDOF 0
+ENDMDL
+MODEL 6
+REMARK VINA RESULT:    -0.224      4.508      4.508
+REMARK INTER + INTRA:          -0.224
+REMARK INTER:                  -0.224
+REMARK INTRA:                   0.000
+REMARK UNBOUND:                 0.000
+REMARK  0 active torsions:
+REMARK  status: ('A' for Active; 'I' for Inactive)
+ROOT
+ATOM      1  OW  HOH   231      -0.553  12.502  14.240  1.00  0.00    -0.411 OA
+ATOM      2  HW1 HOH   231      -0.608  13.353  14.761  1.00  0.00     0.205 HD
+ATOM      3  HW2 HOH   231       0.324  12.058  14.420  1.00  0.00     0.205 HD
+ENDROOT
+TORSDOF 0
+ENDMDL
+MODEL 7
+REMARK VINA RESULT:    -0.224      4.781      4.781
+REMARK INTER + INTRA:          -0.224
+REMARK INTER:                  -0.224
+REMARK INTRA:                   0.000
+REMARK UNBOUND:                 0.000
+REMARK  0 active torsions:
+REMARK  status: ('A' for Active; 'I' for Inactive)
+ROOT
+ATOM      1  OW  HOH   231      -0.553   9.121  15.367  1.00  0.00    -0.411 OA
+ATOM      2  HW1 HOH   231      -0.280   9.976  14.927  1.00  0.00     0.205 HD
+ATOM      3  HW2 HOH   231      -0.826   9.305  16.310  1.00  0.00     0.205 HD
+ENDROOT
+TORSDOF 0
+ENDMDL
+MODEL 8
+REMARK VINA RESULT:    -0.224      2.958      2.958
+REMARK INTER + INTRA:          -0.224
+REMARK INTER:                  -0.224
+REMARK INTRA:                   0.000
+REMARK UNBOUND:                 0.000
+REMARK  0 active torsions:
+REMARK  status: ('A' for Active; 'I' for Inactive)
+ROOT
+ATOM      1  OW  HOH   231       2.077  13.629  17.997  1.00  0.00    -0.411 OA
+ATOM      2  HW1 HOH   231       1.177  13.195  17.967  1.00  0.00     0.205 HD
+ATOM      3  HW2 HOH   231       2.783  12.943  17.825  1.00  0.00     0.205 HD
+ENDROOT
+TORSDOF 0
+ENDMDL
+MODEL 9
+REMARK VINA RESULT:    -0.224      3.757      3.757
+REMARK INTER + INTRA:          -0.224
+REMARK INTER:                  -0.224
+REMARK INTRA:                   0.000
+REMARK UNBOUND:                 0.000
+REMARK  0 active torsions:
+REMARK  status: ('A' for Active; 'I' for Inactive)
+ROOT
+ATOM      1  OW  HOH   231       2.453  10.248  18.748  1.00  0.00    -0.411 OA
+ATOM      2  HW1 HOH   231       2.411  10.198  17.751  1.00  0.00     0.205 HD
+ATOM      3  HW2 HOH   231       2.478  11.206  19.032  1.00  0.00     0.205 HD
+ENDROOT
+TORSDOF 0
+ENDMDL

@@ -1,0 +1,13 @@
+receptor = files/water_receptor.pdbqt
+ligand = files/water.pdbqt
+
+center_x = 0.950
+center_y = 11.375
+center_z = 16.494
+
+size_x = 6
+size_y = 6
+size_z = 6
+
+energy_range = 100
+exhaustiveness = 32
