@@ -50,7 +50,7 @@ def steric(d):
     return sum
 
 if __name__ == "__main__":
-    num_pts = 101
+    num_pts = 401
     d = np.linspace(-1,6,num_pts)
     steric_energy = []
     steric_hydrophobic_energy = []
@@ -63,6 +63,10 @@ if __name__ == "__main__":
     plt.plot(d, steric_energy, '-', label="steric")
     plt.plot(d, steric_hydrophobic_energy, '-', label="steric+hydrophobic")
     plt.plot(d, steric_hbond_energy, '-', label="steric+h-bond")
+    E_min = np.min(steric_hbond_energy)
+    print("minimum hbond + steric energy is :%f"%E_min)
+    plt.xlabel("distance [A]")
+    plt.ylabel("energy [kcal/mol]")
     plt.ylim([-0.25, 0.1])
     plt.legend()
     plt.show()
