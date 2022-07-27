@@ -4,6 +4,7 @@ import sys
 import os
 import subprocess
 
+#TODO: add radius information in the array
 def csv_to_tunnel_points_arrays(tunnel_csv, tunnel_index):
     """
     a function that scans the tunnel profiles csv and chooses a certain 
@@ -34,14 +35,36 @@ def csv_to_tunnel_points_arrays(tunnel_csv, tunnel_index):
 
     return tunnel_points[:, skip_cols:].astype(float)
 
-def tunnel_points_to_box_configs(tunnel_points, output_folder):
+def pdb_to_tunnel_points_arrays(tunnel_pdb):
+    """
+    a function that parses the tunnel profiles pdb. 
+    This function outputs an array of coordinates and sizes.
+    ---------------------------------------------------------------------------
+    tunnel_pdb: str
+    filename of the tunnel profile pdb
+
+    ----------------------------------------------------------------------------
+    Returns:
+    tunnel_points: ndarray
+    4 x n numpy array of tunnel point coordinates plus radius in Angstroms
+
+    """
+    # read in the pdb file
+    pdb_file = open(tunnel_pdb)
+
+    # read in the b-factor(radius)
+    pass
+
+def tunnel_points_to_box_configs(tunnel_points, receptor, output_folder):
     """
     a function that reads the output of the above function, then outputs
     a series of config files for AutoDock Vina. Default box size is 6, but it
     could be customized to each sphere's size.
     ----------------------------------------------------------------------------
-    tunnel_points: 3 x n ndarray
-    array of tunnel point coordinates
+    tunnel_points: 4 x n ndarray
+    array of tunnel point coordinates and radii
+
+    receptor: pdbqt file of the receptor
 
     output_folder: str
     folder to store the temporary box configs for Autodock Vina
@@ -52,10 +75,9 @@ def tunnel_points_to_box_configs(tunnel_points, output_folder):
     """
 
     num_of_pts = tunnel_points.shape[1]
-    receptor = "files/cavity_subunits.pdbqt"
     ligand = "files/water.pdbqt"
     energy_range = 100
-    size = 6
+    #size = 6
     exhaustiveness = 32
     for i in range(num_of_pts):
         tp = tunnel_points[:,i]
@@ -67,9 +89,9 @@ def tunnel_points_to_box_configs(tunnel_points, output_folder):
             file.write("center_y = %.3f\n"%tp[1])
             file.write("center_z = %.3f\n"%tp[2])
             file.write("\n")
-            file.write("size_x = %.3f\n"%size)
-            file.write("size_y = %.3f\n"%size)
-            file.write("size_z = %.3f\n"%size)
+            file.write("size_x = %.3f\n"%tp[3])
+            file.write("size_y = %.3f\n"%tp[3])
+            file.write("size_z = %.3f\n"%tp[3])
             file.write("\n")
             file.write("energy_range = " + str(energy_range) + "\n")
             file.write("exhaustiveness = " + str(exhaustiveness) + "\n")
