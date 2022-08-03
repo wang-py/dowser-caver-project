@@ -46,14 +46,21 @@ def pdb_to_tunnel_points_arrays(tunnel_pdb):
     ----------------------------------------------------------------------------
     Returns:
     tunnel_points: ndarray
-    4 x n numpy array of tunnel point coordinates plus radius in Angstroms
+    n x 4 numpy array of tunnel point coordinates plus radius in Angstroms
 
     """
     # read in the pdb file
+    tunnel_points = []
     pdb_file = open(tunnel_pdb)
+    for line in pdb_file.readlines():
+        line_arr = line.split()
+        xyz = [float(x) for x in line_arr[6:9]]
+        # read in the b-factor(radius)
+        radius = float(line_arr[10])
+        xyz.append(radius)
+        tunnel_points.append(xyz)
 
-    # read in the b-factor(radius)
-    pass
+    return np.array(tunnel_points)
 
 def tunnel_points_to_box_configs(tunnel_points, receptor, output_folder):
     """
@@ -74,13 +81,14 @@ def tunnel_points_to_box_configs(tunnel_points, receptor, output_folder):
     None
     """
 
-    num_of_pts = tunnel_points.shape[1]
+    num_of_pts = tunnel_points.shape[0]
     ligand = "files/water.pdbqt"
     energy_range = 100
     #size = 6
     exhaustiveness = 32
     for i in range(num_of_pts):
-        tp = tunnel_points[:,i]
+        tp = tunnel_points[i,:]
+        radius = tp[3]
         with open(output_folder + "/box_" + str(i) + ".txt", 'w') as file:
             file.write("receptor = " + str(receptor) + "\n")
             file.write("ligand = " + str(ligand) + "\n")
@@ -89,9 +97,9 @@ def tunnel_points_to_box_configs(tunnel_points, receptor, output_folder):
             file.write("center_y = %.3f\n"%tp[1])
             file.write("center_z = %.3f\n"%tp[2])
             file.write("\n")
-            file.write("size_x = %.3f\n"%tp[3])
-            file.write("size_y = %.3f\n"%tp[3])
-            file.write("size_z = %.3f\n"%tp[3])
+            file.write("size_x = %.3f\n"%(radius * 2))
+            file.write("size_y = %.3f\n"%(radius * 2))
+            file.write("size_z = %.3f\n"%(radius * 2))
             file.write("\n")
             file.write("energy_range = " + str(energy_range) + "\n")
             file.write("exhaustiveness = " + str(exhaustiveness) + "\n")
