@@ -21,21 +21,22 @@ fi
 cp new.pdbqt $pdbqt
 rm new.pdbqt
 
-./make_config $pdbqt
+#./make_config $pdbqt
 
-box_size=$2
+#box_size=$2
 
-if [[ $2<0 ]]; then
- box_size="10"
-fi
+#if [[ $2<0 ]]; then
+# box_size="10"
+#fi
 
-./conf $box_size
+#./conf $box_size
 
 # read box number into the variable num_boxes
-read num_boxes<box_number.txt
+#read num_boxes<box_number.txt
+num_boxes=38
 max_cluster=3
 
-for kconf in $(seq 1 $num_boxes); do
+for kconf in $(seq 0 $num_boxes); do
 
 for j in $(seq 1 $max_cluster); do
 	progress1="Processing part "$kconf" out of "$num_boxes
@@ -50,7 +51,7 @@ for j in $(seq 1 $max_cluster); do
 	echo ""
 	echo $progress2
 	echo ""
-	./run --receptor $pdbqt --ligand water.pdbqt --config box"$kconf".txt  --out Set"$j".pdbqt --exhaustiveness=20 > dpp.log
+	./run --receptor $pdbqt --ligand water.pdbqt --config ../boxes/box_"$kconf".txt  --out Set"$j".pdbqt --exhaustiveness=20 > dpp.log
 	rm dpp.log
 	grep OW Set"$j".pdbqt >> AllSets.pdb
 	grep RESULT Set"$j".pdbqt | awk '{print $4}' >> AllScores.txt 
