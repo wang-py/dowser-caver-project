@@ -19,13 +19,17 @@ def get_energy_of_one_prediction(pdbqt):
 
 def plot_all_energies(all_energies):
     prediction_index = np.array([])
-    counter = 1
+    counter = 0
     for energy in all_energies:
         energy_len = len(energy)
         prediction_index = np.append(prediction_index, np.repeat(counter, energy_len))
         counter += 1
     all_energies = np.concatenate(all_energies)
     plt.figure()
+    plt.title("AutoDock Vina Energies Per Site")
+    plt.ylabel("Energy [kcal/mol]")
+    plt.ylim([-5, 5])
+    plt.xlabel("Docking site number")
     plt.scatter(prediction_index, all_energies)
     plt.show()
 
