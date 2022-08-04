@@ -28,7 +28,7 @@ def plot_all_energies(all_energies):
     plt.figure()
     plt.title("AutoDock Vina Energies Per Site")
     plt.ylabel("Energy [kcal/mol]")
-    plt.ylim([-5, 5])
+    plt.ylim([-3, 3])
     plt.xlabel("Docking site number")
     plt.scatter(prediction_index, all_energies)
     plt.show()
