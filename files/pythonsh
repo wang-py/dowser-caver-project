@@ -6,7 +6,7 @@
 
 ######
 ## Set some environment variable.
-MGL_ROOT="/home/miller96/Software/MGLTools-1.5.7" 
+MGL_ROOT="/home/pyw/Software/mgltools_x86_64Linux2_1.5.6" 
 export MGL_ROOT
 
 ########
@@ -34,23 +34,25 @@ PATH="$MGL_ROOT/bin:$PATH"
 export PATH
 
 
-TCL_LIBRARY="$MGL_ROOT/tcl8.5"
+TCL_LIBRARY="$MGL_ROOT/tcl8.4"
 export TCL_LIBRARY
 
-TK_LIBRARY="$MGL_ROOT/tk8.5"
+TK_LIBRARY="$MGL_ROOT/tk8.4"
 export TK_LIBRARY
-
-# Open Babel formats, plugins directory:
-BABEL_LIBDIR="$MGL_ROOT/lib/openbabel/2.4.1"
-export BABEL_LIBDIR
-BABEL_DATADIR="$MGL_ROOT/share/openbabel/2.4.1"
-export BABEL_DATADIR
 
 # set path so we get the versions of command we expect
 originalpath="$PATH"
 
 # set the LD_LIBRARY PATH for each platform
 case "`uname -s`" in
+    IRIX|IRIX64)
+	LD_LIBRARYN32_PATH="$MGL_ROOT/lib${LD_LIBRARYN32_PATH:+:$LD_LIBRARYN32_PATH}"
+	export LD_LIBRARYN32_PATH
+	;;
+    OSF1)
+	LD_LIBRARY_PATH="$MGL_ROOT/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+	export LD_LIBRARY_PATH
+	;;
     Linux)
 	LD_LIBRARY_PATH="$MGL_ROOT/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 	export LD_LIBRARY_PATH
@@ -66,19 +68,35 @@ case "`uname -s`" in
         ps -wx -ocommand | grep -e '[X]11' > /dev/null;
         if [ \"$?\" != \"0\" -a ! -f ~/.xinitrc ]; then
             echo \"rm -f ~/.xinitrc\" > ~/.xinitrc
-            sed 's/xterm/# xterm/' /opt/X11/lib/X11/xinit/xinitrc >> ~/.xinitrc                 
+            sed 's/xterm/# xterm/' /usr/X11R6/lib/X11/xinit/xinitrc >> ~/.xinitrc                 
         fi 
 	# This will start X11 which provides windows system.
 	# which is needed to run ADT/PMV and VISION
-	open -a XQuartz
-	DYLD_LIBRARY_PATH="$MGL_ROOT/lib:${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
+	echo "Starting X11"
+	open -a X11
+	DYLD_LIBRARY_PATH="$MGL_ROOT/lib${DYLD_LIBRARY_PATH:+:$DYLD_LIBRARY_PATH}"
 	export DYLD_LIBRARY_PATH
+	# Make the Tcl/Tk and Python frameworks accessible.
+	# DYLD_FRAMEWORK_PATH="$CHIMERA/Library/Frameworks${DYLD_FRAMEWORK_PATH:+:$DYLD_FRAMEWORK_PATH}"
+	# export DYLD_FRAMEWORK_PATH
+	# Chimera hangs on start-up on Mac OS 10.2 due to a semaphore lock
+	# in the run-time linker unless the following variable is set.
+	# DYLD_BIND_AT_LAUNCH=1
+	# export DYLD_BIND_AT_LAUNCH
+	;;
+    SunOS)
+	LD_LIBRARY_PATH="$MGL_ROOT/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+	export LD_LIBRARY_PATH
 	;;
 esac
 
 
 # system-dependent error checking
 case "`uname -s`" in
+	IRIX|IRIX64)
+		;;
+	OSF1)
+		;;
 	Linux)
 		p0="/usr/lib/libGL.so.1"
 		p1="/usr/X11R6/lib/libGL.so.1"
@@ -93,6 +111,8 @@ case "`uname -s`" in
 				#exit 1
 			fi
 		fi
+		;;
+	AIX*)
 		;;
 	Darwin*)
 		;;
@@ -117,6 +137,7 @@ then
 	# using our distributed version of python, don't use any python
 	# environment variables, especialy PYTHONHOME and PYTHONPATH
 	unset PYTHONHOME
+	echo "setting PYTHONHOME environment"
 	PYTHONHOME="$MGL_ROOT"
 	export PYTHONHOME
 	PYTHONPATH="$MGL_ROOT/MGLToolsPckgs"
