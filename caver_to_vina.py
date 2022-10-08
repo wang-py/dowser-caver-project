@@ -52,7 +52,8 @@ def pdb_to_tunnel_points_arrays(tunnel_pdb):
     # read in the pdb file
     tunnel_points = []
     pdb_file = open(tunnel_pdb)
-    for line in pdb_file.readlines():
+    atom_info = [line for line in pdb_file.readlines() if 'ATOM' in line]
+    for line in atom_info:
         line_arr = line.split()
         xyz = [float(x) for x in line_arr[6:9]]
         # read in the b-factor(radius)
@@ -86,7 +87,7 @@ def tunnel_points_to_box_configs(tunnel_points, receptor, output_folder):
     energy_range = 100
     #size = 6
     exhaustiveness = 32
-    for i in range(num_of_pts):
+    for i in range(1, num_of_pts + 1):
         tp = tunnel_points[i,:]
         radius = tp[3]
         with open(output_folder + "/box_" + str(i) + ".txt", 'w') as file:
