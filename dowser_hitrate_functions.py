@@ -1,5 +1,6 @@
 import numpy as np
 import sys
+import matplotlib.pyplot as plt
 
 def dowser_water_pruning(dowser_water_pdb):
     """
@@ -75,7 +76,7 @@ def hit_detection(exp_water, dowser_water, distance_threshold):
             # remove water that's on point
             dowser_water = np.delete(dowser_water, hit, axis=0)
             # add to hit count
-            hit_count += 1
+            hit_count += len(hit)
     print("number of hits: %d"%hit_count)
     print("total number of water predicted: %d"%dowser_count)
     hitrate = hit_count / dowser_count
@@ -97,3 +98,10 @@ def calculate_distance(exp_water, dowser_water):
     
     return distance_arr
 
+def plot_hitrate_vs_cutoff(hitrate, cutoff):
+    plt.plot(cutoff, hitrate*100, 'o')
+    plt.title("dowser hitrate vs energy cutoff")
+    plt.xlabel("energy cutoff [kCal/mol]")
+    plt.ylabel("hitrate [%]")
+    plt.show()
+    pass
