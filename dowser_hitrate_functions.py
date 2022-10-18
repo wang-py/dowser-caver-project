@@ -29,6 +29,25 @@ def dowser_water_pruning(dowser_water_pdb):
 
     return dowser_water_arr
 
+def read_exp_water(exp_water_pdb):
+    """
+    reads the pdb file of experimental water and returns array of positions
+    ----------------------------------------------------------------------------
+    exp_water_pdb: str
+    filename of experimental water pdb
+    ----------------------------------------------------------------------------
+    Returns:
+    exp_water_arr: ndarray
+    N x 3 array of experimental water positions
+    """
+
+    with open(exp_water_pdb, 'r') as ewp:
+        exp_data = [line.split()[6:9] for line in ewp.readlines() if 'HETATM' in line]
+    exp_data = np.array(exp_data)
+    exp_water_arr = exp_data.astype(float)
+    
+    return exp_water_arr
+
 def hit_detection(exp_water, dowser_water):
     pass
 
