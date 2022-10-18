@@ -49,9 +49,51 @@ def read_exp_water(exp_water_pdb):
     
     return exp_water_arr
 
-def hit_detection(exp_water, dowser_water):
-    pass
+def hit_detection(exp_water, dowser_water, distance_threshold):
+    """
+    function that detects if dowser prediction matches with experimental data
+    ----------------------------------------------------------------------------
+    exp_water: ndarray
+    array of positions of experimental water
+
+    dowser_water: ndarray
+    array of positions and energies of dowser predictions
+
+    distance_threshold: float
+    hit detection radius in angstroms
+    ----------------------------------------------------------------------------
+    Returns:
+    hitrate: float
+    The pecentage of predictions that match experimental data
+    """
+    hit_count = 0
+    dowser_count = dowser_water.shape[0]
+    for one_exp in exp_water:
+        distance = calculate_distance(one_exp, dowser_water[:, 0:3])
+        hit = np.where(distance < distance_threshold)[0]
+        if hit:
+            # remove water that's on point
+            dowser_water = np.delete(dowser_water, hit, axis=0)
+            # add to hit count
+            hit_count += 1
+    print("number of hits: %d"%hit_count)
+    print("total number of water predicted: %d"%dowser_count)
+    hitrate = hit_count / dowser_count
+    print("hit rate is %.2f"%(hitrate))
+
+    return hitrate
 
 def calculate_distance(exp_water, dowser_water):
-    pass
+    """
+    function that calculated the distance between one exp water and 
+    all dowser waters
+    ----------------------------------------------------------------------------
+    ----------------------------------------------------------------------------
+    Returns:
+    distance_arr: ndarray
+    N x 1 array of distances between one exp water and all dowser waters
+    """
+    distance_arr = np.linalg.norm(dowser_water - exp_water, axis=1)
+    
+    return distance_arr
 
