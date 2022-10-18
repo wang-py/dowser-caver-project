@@ -26,6 +26,7 @@ def dowser_water_pruning(dowser_water_pdb):
         dowser_water_arr.append(np.append(dowser_water_xyz[i], dowser_water_energy[i]))
     
     dowser_water_arr =  np.array(dowser_water_arr).astype(float)
+    dowser_water_arr = dowser_water_arr[np.argsort(dowser_water_arr[:, -1])]
 
     return dowser_water_arr
 
