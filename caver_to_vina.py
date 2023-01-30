@@ -87,12 +87,12 @@ def tunnel_points_to_box_configs(tunnel_points, receptor, output_folder):
     energy_range = 100
     #size = 6
     exhaustiveness = 32
-    for i in range(1, num_of_pts + 1):
+    for i in range(num_of_pts):
         tp = tunnel_points[i,:]
         radius = tp[3]
-        with open(output_folder + "/box_" + str(i) + ".txt", 'w') as file:
-            file.write("receptor = " + str(receptor) + "\n")
-            file.write("ligand = " + str(ligand) + "\n")
+        with open(output_folder + "/box_" + str(i+1) + ".txt", 'w') as file:
+            #file.write("receptor = " + str(receptor) + "\n")
+            #file.write("ligand = " + str(ligand) + "\n")
             file.write("\n")
             file.write("center_x = %.3f\n"%tp[0])
             file.write("center_y = %.3f\n"%tp[1])
