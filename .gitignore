@@ -2,3 +2,7 @@ files/input
 files/backup
 files/result
 boxes/
+*.pdb
+*.pdbqt
+*.pdbqs
+*.pyc
