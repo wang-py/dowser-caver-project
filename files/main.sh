@@ -33,31 +33,32 @@ rm new.pdbqt
 
 # read box number into the variable num_boxes
 #read num_boxes<box_number.txt
-num_boxes=38
+num_boxes=$(ls ../boxes/box* -1q | wc -l)
+echo "There are $num_boxes tunnel points"
 max_cluster=3
 
-for kconf in $(seq 0 $num_boxes); do
-
+for kconf in $(seq 1 $num_boxes); do
+echo working on box_$kconf.txt...
 for j in $(seq 1 $max_cluster); do
 	progress1="Processing part "$kconf" out of "$num_boxes
 	progress2="Clustering round "$j" out of "$max_cluster
 	echo ""
 	echo "Dowser with Caver, software for hydrating tunnels in protein structures"
 	echo ""
-	echo "Made by Alexander Morozenko, modified by Panyue Wang at University of California, Davis"
+	echo "By Panyue Wang at University of California, Davis"
 	echo ""
 	echo ""
 	echo $progress1
 	echo ""
 	echo $progress2
 	echo ""
-	./run --receptor $pdbqt --ligand water.pdbqt --config ../boxes/box_"$kconf".txt  --out Set"$j".pdbqt --exhaustiveness=20 > dpp.log
-	rm dpp.log
+	./run --receptor $pdbqt --ligand water.pdbqt --config ../boxes/box_"$kconf".txt  --out Set"$j".pdbqt --exhaustiveness=20 > /dev/null
 	grep OW Set"$j".pdbqt >> AllSets.pdb
 	grep RESULT Set"$j".pdbqt | awk '{print $4}' >> AllScores.txt 
 	rm Set"$j".pdbqt
 done
 
+echo load_data
 ./load_data
 rm AllScores.txt AllSets.pdb
 
@@ -153,25 +154,25 @@ RSCRIPT
 
 done
 
-rm box*.txt # $pdbqt
+#rm box*.txt # $pdbqt
 cat temp_PredictedWaters*.pdb > PredictedWaters.pdb
 rm temp_PredictedWaters*.pdb 
 
 ./reform -pdbin $1 -pdbout reform.pdb
 cat reform.pdb PredictedWaters.pdb > reform2.pdb
-./drain reform2.pdb PredictedWaters.pdb surface.wat PredictedInternal.pdb
-rm surface.wat PredictedWaters.pdb 
+#./drain reform2.pdb PredictedWaters.pdb surface.wat PredictedInternal.pdb
+#rm surface.wat PredictedWaters.pdb 
+#
+#./sorting
+#rm PredictedInternal.pdb
+#./internal_predicted
+#rm sorted.pdb
 
-./sorting
-rm PredictedInternal.pdb
-./internal_predicted
-rm sorted.pdb
-
-./placeWat reform.pdb PredictedInternal.pdb rotate > placed.pdb 
-
-cp placed.pdb refined.pdb
-./choosing $cutoff_energy
-rm placed.pdb refined.pdb reform.pdb reform2.pdb
+#./placeWat reform.pdb PredictedInternal.pdb rotate > placed.pdb 
+#
+#cp placed.pdb refined.pdb
+#./choosing $cutoff_energy
+#rm placed.pdb refined.pdb reform.pdb reform2.pdb
 
 
 
