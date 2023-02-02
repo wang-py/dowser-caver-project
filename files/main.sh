@@ -160,19 +160,19 @@ rm temp_PredictedWaters*.pdb
 
 ./reform -pdbin $1 -pdbout reform.pdb
 cat reform.pdb PredictedWaters.pdb > reform2.pdb
-#./drain reform2.pdb PredictedWaters.pdb surface.wat PredictedInternal.pdb
-#rm surface.wat PredictedWaters.pdb 
-#
-#./sorting
-#rm PredictedInternal.pdb
-#./internal_predicted
-#rm sorted.pdb
+./drain reform2.pdb PredictedWaters.pdb surface.wat PredictedInternal.pdb
+rm surface.wat PredictedWaters.pdb 
 
-#./placeWat reform.pdb PredictedInternal.pdb rotate > placed.pdb 
-#
-#cp placed.pdb refined.pdb
-#./choosing $cutoff_energy
-#rm placed.pdb refined.pdb reform.pdb reform2.pdb
+./sorting
+rm PredictedInternal.pdb
+./internal_predicted
+rm sorted.pdb
+
+./placeWat reform.pdb PredictedInternal.pdb rotate > placed.pdb 
+
+cp placed.pdb refined.pdb
+./choosing $cutoff_energy
+rm placed.pdb refined.pdb reform.pdb reform2.pdb
 
 
 
