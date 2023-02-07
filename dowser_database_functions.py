@@ -3,11 +3,31 @@
 import os
 import sys
 
+resname_gmx_to_dowser = {
+    'GLUH': 'GLH ', 
+    'ASPH': 'ASH ', 
+    'LYSN': 'LYN ', 
+    'HISA': 'HSN ', 
+    'ARGN': 'ARN '}
+
 class aminoacid:
     def __init__(self, resname, atom_list, charge_list):
         self.resname = resname
         self.atom_list = []
         selfcharge_list = []
+
+def rename_neutral_residues(input_pdb, output_pdb):
+    with open(input_pdb, 'r') as input:
+        box = input.readline()
+        data = [line for line in input.readlines() if 'ATOM' or 'HETATM' in line]
+    with open(output_pdb, 'w') as output: 
+        for line in data:
+            for gmx in resname_gmx_to_dowser:
+                dowser_resname = resname_gmx_to_dowser[gmx]
+                if gmx in line:
+                    line = line.replace(gmx, dowser_resname)
+            output.write(line)
+    pass        
 
 def read_atomdict(atomdict):
     with open(atomdict, 'r') as ad:
