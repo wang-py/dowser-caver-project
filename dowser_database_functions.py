@@ -21,9 +21,13 @@ def rename_neutral_residues(input_pdb, output_pdb):
         box = input.readline()
         data = [line for line in input.readlines() if 'ATOM' or 'HETATM' in line]
     with open(output_pdb, 'w') as output: 
+        # keep box information
+        output.write(box)
+        # search every atom
         for line in data:
             for gmx in resname_gmx_to_dowser:
                 dowser_resname = resname_gmx_to_dowser[gmx]
+                # check if neutral residue names exist
                 if gmx in line:
                     line = line.replace(gmx, dowser_resname)
             output.write(line)
