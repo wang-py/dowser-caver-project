@@ -63,7 +63,7 @@ def pdb_to_tunnel_points_arrays(tunnel_pdb):
 
     return np.array(tunnel_points)
 
-def tunnel_points_to_box_configs(tunnel_points, receptor, output_folder):
+def tunnel_points_to_box_configs(tunnel_points, output_folder):
     """
     a function that reads the output of the above function, then outputs
     a series of config files for AutoDock Vina. Default box size is 6, but it
