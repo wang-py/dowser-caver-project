@@ -7,7 +7,7 @@ resname_gmx_to_dowser = {
     'GLUH': 'GLH ', 
     'ASPH': 'ASH ', 
     'LYSN': 'LYN ', 
-    'HISA': 'HSN ', 
+    'HISD': 'HSN ', 
     'ARGN': 'ARN '}
 
 class aminoacid:
