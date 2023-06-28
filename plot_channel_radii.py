@@ -18,8 +18,8 @@ def plotting(x, y, label):
     """
     #plt.figure()
     fig, ax = plt.subplots()
-    ax.scatter(x, y, label=label)
-    ax.hlines(1.4, np.min(x), np.max(x), linestyles='dashed', colors='k',label="radius of water")
+    ax.plot(x, y, label=label)
+    ax.axhline(1.4, color='k', linestyle='--', label="radius of water")
     ax.set_xlabel("points")
     ax.set_ylabel("Radius [A]")
     ax.set_title("sphere size along caver points")
