@@ -14,5 +14,5 @@ for ((i=1; i<2; i++))
     echo "$CURRENT_WATER" > current_water.pdb
     CURRENT_WATER_HETATM=$(echo "$CURRENT_WATER" | sed s/ATOM\ \ /HETATM/1 )
     echo "$CURRENT_WATER_HETATM"
-    sed -i s/$CURRENT_WATER/$CURRENT_WATER_HETATM/g $STRUCTURE_INPUT > current_structure.pdb
+    sed 's/$CURRENT_WATER/$CURRENT_WATER_HETATM/g' $STRUCTURE_INPUT > current_structure.pdb
 done
