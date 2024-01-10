@@ -8,6 +8,12 @@ def water_hetatm_replacement(position, structure_data):
     structure_data[position+2] = structure_data[position+2].replace('ATOM  ', 'HETATM')
     return structure_data
 
+#/reform -pdbin lipolytica_JKAHN_charged_with_dowser_waters_HOH23_HETATM.pdb -pdbout lipolytica_JKAHN_charged_with_dowser_waters_HOH23_HETATM_DOWSER.pdb 
+def run_reform(pdbin, pdbout):
+    reform_args = ("./reform", "-pdbin", pdbin, "-pdbout", pdbout)
+    popen = subprocess.Popen(reform_args, stdout=subprocess.PIPE)
+    popen.wait()
+
 if __name__ == "__main__":
     dowser_o_input=sys.argv[1]
     structure_input=sys.argv[2]
@@ -32,4 +38,10 @@ if __name__ == "__main__":
         current_water_hetatm_OW = current_structure[water_pos_in_structure]
         current_water_hetatm_HW1 = current_structure[water_pos_in_structure+1]
         current_water_hetatm_HW2 = current_structure[water_pos_in_structure+2]
+        print(f"water {i+1} is being changed to HETATM...")
         print(current_water_hetatm_OW + current_water_hetatm_HW1 + current_water_hetatm_HW2)
+        with open('current_structure.pdb', 'w') as cs:
+            cs.writelines(current_structure)
+
+        run_reform('current_structure.pdb', 'current_structure_DOWSER.pdb')
+        
