@@ -25,6 +25,8 @@ if __name__ == "__main__":
     dowser_o_input = sys.argv[1]
     structure_input = sys.argv[2]
     refined_pdb = sys.argv[3]
+    if os.path.exists(refined_pdb):
+        os.remove(refined_pdb)
     with open(dowser_o_input, 'r') as dowser_o:
         dowser_data = dowser_o.readlines()
         num_of_water = len(dowser_data)
@@ -36,7 +38,7 @@ if __name__ == "__main__":
 
     print(f"refining the energies of {num_of_water} water molecules...")
 
-    for i in range(1):
+    for i in range(num_of_water):
         current_water = dowser_data[i]
         print(current_water)
         with open('current_water.pdb', 'w') as cw:
@@ -55,3 +57,7 @@ if __name__ == "__main__":
 
         run_reform('current_structure.pdb', 'current_structure_DOWSER.pdb')
         run_placeWat('current_structure_DOWSER.pdb','current_water.pdb', refined)
+
+    os.remove('current_water.pdb')
+    os.remove('current_structure.pdb')
+    os.remove('current_structure_DOWSER.pdb')
