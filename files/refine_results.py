@@ -1,6 +1,7 @@
 import sys
 import os
 import subprocess
+import copy
 
 def water_hetatm_replacement(position, structure_data):
     structure_data[position] = structure_data[position].replace('ATOM  ', 'HETATM')
@@ -11,7 +12,7 @@ def water_hetatm_replacement(position, structure_data):
 #./reform -pdbin lipolytica_JKAHN_charged_with_dowser_waters_HOH23_HETATM.pdb -pdbout lipolytica_JKAHN_charged_with_dowser_waters_HOH23_HETATM_DOWSER.pdb 
 def run_reform(pdbin, pdbout):
     reform_args = ("./reform", "-pdbin", pdbin, "-pdbout", pdbout)
-    popen = subprocess.Popen(reform_args, stdout=subprocess.PIPE)
+    popen = subprocess.Popen(reform_args)
     popen.wait()
 
 #./placeWat lipolytica_JKAHN_charged_with_dowser_waters_HOH23_HETATM_DOWSER.pdb lipolytica_JKAHN_O23.pdb rotate > lipolytica_JKAHN_charged_with_dowser_waters_HOH23_HETATM_docking_1.pdb
@@ -62,7 +63,7 @@ if __name__ == "__main__":
             cw.write(current_water)
         water_pos_in_structure = [l for l,x in enumerate(structure_data) if x == current_water]
         water_pos_in_structure = water_pos_in_structure[0]
-        current_structure = structure_data
+        current_structure = copy.deepcopy(structure_data)
         current_structure = water_hetatm_replacement(water_pos_in_structure, current_structure)
         current_water_hetatm_OW = current_structure[water_pos_in_structure]
         current_water_hetatm_HW1 = current_structure[water_pos_in_structure+1]
