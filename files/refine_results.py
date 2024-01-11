@@ -12,14 +12,14 @@ def water_hetatm_replacement(position, structure_data):
 #./reform -pdbin lipolytica_JKAHN_charged_with_dowser_waters_HOH23_HETATM.pdb -pdbout lipolytica_JKAHN_charged_with_dowser_waters_HOH23_HETATM_DOWSER.pdb 
 def run_reform(pdbin, pdbout):
     reform_args = ("./reform", "-pdbin", pdbin, "-pdbout", pdbout)
-    popen = subprocess.Popen(reform_args)
+    popen = subprocess.Popen(reform_args, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     popen.wait()
 
 #./placeWat lipolytica_JKAHN_charged_with_dowser_waters_HOH23_HETATM_DOWSER.pdb lipolytica_JKAHN_O23.pdb rotate > lipolytica_JKAHN_charged_with_dowser_waters_HOH23_HETATM_docking_1.pdb
 def run_placeWat(dowser_pdb, current_water_pdb, output):
     placeWat_args = ('./placeWat', dowser_pdb, current_water_pdb, 'rotate')
     #print(placeWat_args)
-    popen = subprocess.Popen(placeWat_args, stdout=output)
+    popen = subprocess.Popen(placeWat_args, stdout=output, stderr=subprocess.DEVNULL)
     popen.wait()
 
 def remove_disqualified_water(re_eval_pdb, cutoff):
@@ -58,7 +58,6 @@ if __name__ == "__main__":
 
     for i in range(num_of_water):
         current_water = dowser_data[i]
-        print(current_water)
         with open('current_water.pdb', 'w') as cw:
             cw.write(current_water)
         water_pos_in_structure = [l for l,x in enumerate(structure_data) if x == current_water]
