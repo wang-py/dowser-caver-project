@@ -21,12 +21,29 @@ def run_placeWat(dowser_pdb, current_water_pdb, output):
     popen = subprocess.Popen(placeWat_args, stdout=output)
     popen.wait()
 
+def remove_disqualified_water(re_eval_pdb, cutoff):
+    with open(re_eval_pdb, 'r') as rep:
+        re_eval_results = rep.readlines()
+    num_of_atoms = len(re_eval_results)
+    refined = []
+    for i in range(0, num_of_atoms, 3):
+        if float(re_eval_results[i][60:66]) < cutoff:
+            refined.append(re_eval_results[i])
+            refined.append(re_eval_results[i+1])
+            refined.append(re_eval_results[i+2])
+    return refined
+
 if __name__ == "__main__":
     dowser_o_input = sys.argv[1]
     structure_input = sys.argv[2]
     refined_pdb = sys.argv[3]
-    if os.path.exists(refined_pdb):
+    cutoff = float(sys.argv[4])
+
+    try:
         os.remove(refined_pdb)
+        os.remove('re-eval.pdb')
+    except OSError as error:
+        print("Did't find previous results")
     with open(dowser_o_input, 'r') as dowser_o:
         dowser_data = dowser_o.readlines()
         num_of_water = len(dowser_data)
@@ -34,7 +51,7 @@ if __name__ == "__main__":
     with open(structure_input, 'r') as structure:
         structure_data = structure.readlines()
 
-    refined = open(refined_pdb, 'a')
+    re_eval = open('re-eval.pdb', 'a')
 
     print(f"refining the energies of {num_of_water} water molecules...")
 
@@ -56,8 +73,12 @@ if __name__ == "__main__":
             cs.writelines(current_structure)
 
         run_reform('current_structure.pdb', 'current_structure_DOWSER.pdb')
-        run_placeWat('current_structure_DOWSER.pdb','current_water.pdb', refined)
+        run_placeWat('current_structure_DOWSER.pdb','current_water.pdb', re_eval)
 
+    refined_results = remove_disqualified_water('re-eval.pdb', cutoff)
+    re_eval.close()
+    with open(refined_pdb, 'w') as rp:
+        rp.writelines(refined_results)
     os.remove('current_water.pdb')
     os.remove('current_structure.pdb')
     os.remove('current_structure_DOWSER.pdb')
