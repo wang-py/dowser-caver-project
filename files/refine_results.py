@@ -41,8 +41,8 @@ if __name__ == "__main__":
     cutoff = float(sys.argv[4])
 
     try:
-        os.remove(refined_pdb)
         os.remove('re-eval.pdb')
+        os.remove(refined_pdb)
     except OSError as error:
         print("Did't find previous results")
     with open(dowser_o_input, 'r') as dowser_o:
