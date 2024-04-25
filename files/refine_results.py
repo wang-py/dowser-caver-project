@@ -18,7 +18,7 @@ def run_reform(pdbin, pdbout):
 #./placeWat lipolytica_JKAHN_charged_with_dowser_waters_HOH23_HETATM_DOWSER.pdb lipolytica_JKAHN_O23.pdb rotate > lipolytica_JKAHN_charged_with_dowser_waters_HOH23_HETATM_docking_1.pdb
 def run_placeWat(dowser_pdb, current_water_pdb, output):
     placeWat_args = ('./placeWat', dowser_pdb, current_water_pdb, 'rotate')
-    #print(placeWat_args)
+    print(placeWat_args)
     popen = subprocess.Popen(placeWat_args, stdout=output, stderr=subprocess.DEVNULL)
     popen.wait()
 
