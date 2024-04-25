@@ -47,8 +47,8 @@ def plot_energy_vs_site(dowser_1, dowser_2, sites, output_filename):
     ax.set_xticks(sites)
     ax.tick_params(axis='x', labelsize=label_fontsize)
     ax.tick_params(axis='y', labelsize=label_fontsize)
-    ax.plot(sites, dowser_1, 'rv', label='dowser first run', markersize=10)
-    ax.plot(sites, dowser_2, 'bv', label='dowser refinement run', markersize=10)
+    ax.plot(sites, dowser_1, 'rv', label='dowser refinement run', markersize=10)
+    ax.plot(sites, dowser_2, 'bv', label='dowser refinement run with EM', markersize=10)
     #plt.title("total energy vs site number", fontsize=label_fontsize)
     bulk_energy = -42 / cal_to_joules
     plt.axhline(bulk_energy, color='k', linestyle='--', label='energy of water in bulk %.1f kCal/mol'%bulk_energy)
