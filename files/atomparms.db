@@ -9,6 +9,7 @@ TYPE   OW     51.16   1623.0  2.20   # SPC water oxygen
 REMARK: ions
 TYPE   CAL    47.56   861.00  1.80   # calcium
 TYPE   NA     47.56   861.00  1.80   # sodium
+TYPE   SOD     47.56   861.00  1.80   # sodium
 TYPE   ZN     20.57   942.38  1.60   # zinc
 REMARK: united-atom parameters for C and H  
 TYPE   CH2    95.38   5944.0  3.00   # aliphatic C with 2 H
