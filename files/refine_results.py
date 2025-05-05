@@ -2,6 +2,15 @@ import sys
 import os
 import subprocess
 import copy
+import argparse
+
+parser = argparse.ArgumentParser(
+        prog='refine_results.py',
+        description='a script that analyzes and refines dowser results')
+parser.add_argument('-d', '--dowser_input', type=str)
+parser.add_argument('-s', '--structure_input', type=str)
+parser.add_argument('-o', '--refined_pdb', type=str, default='refined.pdb')
+parser.add_argument('-c', '--cutoff', type=float, default=-4.0)
 
 
 def water_hetatm_replacement(position, structure_data):
@@ -43,18 +52,24 @@ def remove_disqualified_water(re_eval_pdb, cutoff):
 
 
 if __name__ == "__main__":
-    dowser_o_input = sys.argv[1]
-    structure_input = sys.argv[2]
-    refined_pdb = sys.argv[3]
-    cutoff = float(sys.argv[4])
-
+    try:
+        args = parser.parse_args()
+        dowser_o_input = args.dowser_input
+        structure_input = args.structure_input
+        refined_pdb = args.refined_pdb
+        cutoff = args.cutoff
+        if not any(vars(args).values()):
+            raise Exception
+    except Exception:
+        print('Usage: python refine_results.py -d dowser_input' +
+              ' -s structure_input -p refined_pdb -c cutoff')
     try:
         os.remove('re-eval.pdb')
         os.remove(refined_pdb)
-    except OSError as error:
+    except OSError:
         print("Did't find previous results")
     with open(dowser_o_input, 'r') as dowser_o:
-        dowser_data = dowser_o.readlines()
+        dowser_data = [line for line in dowser_o.readlines() if 'ATOM' in line]
         num_of_water = len(dowser_data)
 
     with open(structure_input, 'r') as structure:
