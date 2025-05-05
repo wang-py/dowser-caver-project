@@ -1,4 +1,4 @@
-import sys
+import numpy as np
 import os
 import subprocess
 import copy
@@ -44,11 +44,43 @@ def remove_disqualified_water(re_eval_pdb, cutoff):
     num_of_atoms = len(re_eval_results)
     refined = []
     for i in range(0, num_of_atoms, 3):
-        if float(re_eval_results[i][60:66]) < cutoff:
+        print(f"checking water {int(i / 3 + 1)}...")
+        energy_after_EM = float(re_eval_results[i][61:66])
+        if energy_after_EM < cutoff:
             refined.append(re_eval_results[i])
             refined.append(re_eval_results[i+1])
             refined.append(re_eval_results[i+2])
+            print(f"water {int(i / 3 + 1)} has an energy of" +
+                  f" {energy_after_EM:.2f} kCal < {cutoff:.2f} kCal," +
+                  " thus it was kept.")
+        else:
+            print(f"water {int(i / 3 + 1)} has an energy of" +
+                  f" {energy_after_EM:.2f} kCal > {cutoff:.2f} kCal," +
+                  " thus it was removed.")
     return refined
+
+
+def remove_clashes(dowser_data, r: float = 2.75):
+    i = 0
+    while i < len(dowser_data):
+        dowser_xyz = np.array([x[30:54].split() for
+                               x in dowser_data]).astype(float)
+        dowser_E = np.array([float(x[61:66]) for x in dowser_data])
+        dist = np.sqrt(np.sum(np.square(dowser_xyz - dowser_xyz[i]), axis=1))
+        clash_i = np.where(dist <= r)[0]
+        clash_with_others = np.setdiff1d(clash_i, np.array(i))
+        if clash_with_others.any():
+            c = np.setdiff1d(clash_i, np.array(i))[0]
+            # if the other water has lower energy
+            if dowser_E[c] <= dowser_E[i]:
+                # remove current water
+                dowser_data.pop(i)
+            # else:
+            #     # remove the other water
+            #     dowser_data.pop(c)
+        i += 1
+
+    return dowser_data
 
 
 if __name__ == "__main__":
@@ -78,9 +110,12 @@ if __name__ == "__main__":
 
     re_eval = open('re-eval.pdb', 'a')
 
-    print(f"refining the energies of {num_of_water} water molecules...")
+    print(f"checking clashes of {len(dowser_data)} water molecules...")
+    dowser_data = remove_clashes(dowser_data, r=2.75)
+    print(f"{len(dowser_data)} water molecules remain after checking clashes...")
 
-    for i in range(num_of_water):
+    print(f"refining the energies of {len(dowser_data)} water molecules...")
+    for i in range(len(dowser_data)):
         current_water = dowser_data[i]
         with open('current_water.pdb', 'w') as cw:
             cw.write(current_water)
