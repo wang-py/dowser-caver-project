@@ -69,7 +69,8 @@ if __name__ == "__main__":
     except OSError:
         print("Did't find previous results")
     with open(dowser_o_input, 'r') as dowser_o:
-        dowser_data = [line for line in dowser_o.readlines() if 'ATOM' in line]
+        dowser_data = [line for line in dowser_o.readlines()
+                       if 'ATOM' and ' O ' in line]
         num_of_water = len(dowser_data)
 
     with open(structure_input, 'r') as structure:
