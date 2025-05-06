@@ -45,7 +45,7 @@ def remove_disqualified_water(re_eval_pdb, cutoff):
     refined = []
     for i in range(0, num_of_atoms, 3):
         print(f"checking water {int(i / 3 + 1)}...")
-        energy_after_EM = float(re_eval_results[i][61:66])
+        energy_after_EM = float(re_eval_results[i][60:66])
         if energy_after_EM < cutoff:
             refined.append(re_eval_results[i])
             refined.append(re_eval_results[i+1])
@@ -60,12 +60,26 @@ def remove_disqualified_water(re_eval_pdb, cutoff):
     return refined
 
 
+def read_dowser_water(dowser_o):
+    dowser_file = dowser_o.readlines()
+    dowser_data_unique = list(set([line[30:66] for line in dowser_file
+                                   if 'ATOM' and ' O ' in line]))
+    dowser_data = []
+    for i in range(len(dowser_data_unique)):
+        one_line = "ATOM" + "    " + f" {i + 1} ".rjust(4) + " O " + " HOH " +\
+            "A " + f" {i + 1}  ".rjust(3) + "   " + dowser_data_unique[i] +\
+            "         " + " O \n"
+        dowser_data.append(one_line)
+
+    return dowser_data
+
+
 def remove_clashes(dowser_data, r: float = 2.75):
     i = 0
     while i < len(dowser_data):
         dowser_xyz = np.array([x[30:54].split() for
                                x in dowser_data]).astype(float)
-        dowser_E = np.array([float(x[61:66]) for x in dowser_data])
+        dowser_E = np.array([float(x[60:66]) for x in dowser_data])
         dist = np.sqrt(np.sum(np.square(dowser_xyz - dowser_xyz[i]), axis=1))
         clash_i = np.where(dist <= r)[0]
         clash_with_others = np.setdiff1d(clash_i, np.array(i))
@@ -75,9 +89,9 @@ def remove_clashes(dowser_data, r: float = 2.75):
             if dowser_E[c] <= dowser_E[i]:
                 # remove current water
                 dowser_data.pop(i)
-            # else:
-            #     # remove the other water
-            #     dowser_data.pop(c)
+            else:
+                # remove the other water
+                dowser_data.pop(c)
         i += 1
 
     return dowser_data
@@ -97,10 +111,12 @@ if __name__ == "__main__":
               ' -s structure_input -p refined_pdb -c cutoff')
     try:
         os.remove('re-eval.pdb')
+        os.remove('after_clashes_removal.pdb')
         os.remove(refined_pdb)
     except OSError:
         print("Did't find previous results")
     with open(dowser_o_input, 'r') as dowser_o:
+        # dowser_data = read_dowser_water(dowser_o)
         dowser_data = [line for line in dowser_o.readlines()
                        if 'ATOM' and ' O ' in line]
         num_of_water = len(dowser_data)
@@ -109,9 +125,12 @@ if __name__ == "__main__":
         structure_data = structure.readlines()
 
     re_eval = open('re-eval.pdb', 'a')
+    no_clashes = open('after_clashes_removal.pdb', 'a')
 
     print(f"checking clashes of {len(dowser_data)} water molecules...")
     dowser_data = remove_clashes(dowser_data, r=2.75)
+    no_clashes.writelines(dowser_data)
+
     print(f"{len(dowser_data)} water molecules remain after checking clashes...")
 
     print(f"refining the energies of {len(dowser_data)} water molecules...")
