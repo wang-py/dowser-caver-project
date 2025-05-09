@@ -74,7 +74,7 @@ def read_dowser_water(dowser_o):
     return dowser_data
 
 
-def remove_clashes(dowser_data, r: float = 2.75):
+def remove_clashes(dowser_data, r: float = 2.5, E_threshold = -10):
     i = 0
     while i < len(dowser_data):
         dowser_xyz = np.array([x[30:54].split() for
@@ -85,13 +85,14 @@ def remove_clashes(dowser_data, r: float = 2.75):
         clash_with_others = np.setdiff1d(clash_i, np.array(i))
         if clash_with_others.any():
             c = np.setdiff1d(clash_i, np.array(i))[0]
-            # if the other water has lower energy
-            if dowser_E[c] <= dowser_E[i]:
-                # remove current water
-                dowser_data.pop(i)
-            else:
-                # remove the other water
-                dowser_data.pop(c)
+            if dowser_E[c] >= E_threshold and dowser_E[i] >= E_threshold:
+                # if the other water has lower energy
+                if dowser_E[c] <= dowser_E[i]:
+                    # remove current water
+                    dowser_data.pop(i)
+                else:
+                    # remove the other water
+                    dowser_data.pop(c)
         i += 1
 
     return dowser_data
@@ -128,7 +129,7 @@ if __name__ == "__main__":
     no_clashes = open('after_clashes_removal.pdb', 'a')
 
     print(f"checking clashes of {len(dowser_data)} water molecules...")
-    dowser_data = remove_clashes(dowser_data, r=2.75)
+    dowser_data = remove_clashes(dowser_data, r=2.5)
     no_clashes.writelines(dowser_data)
 
     print(f"{len(dowser_data)} water molecules remain after checking clashes...")
