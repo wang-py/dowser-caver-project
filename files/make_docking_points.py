@@ -97,6 +97,64 @@ def get_input_partitions(atoms, partitions=2):
     return atoms_partitions
 
 
+def generate_one_docking_box(xyz, index: int, box_size: float = 10.0):
+    box_prefix = "../boxes/box_"
+    energy_range = 100
+    exhaustiveness = 20
+    num_modes = 20
+    with open(box_prefix + f"{index}", 'w') as box:
+        # file.write("receptor = " + str(receptor) + "\n")
+        # file.write("ligand = " + str(ligand) + "\n")
+        box.write("\n")
+        box.write(f"center_x = {xyz[0]:.3f}\n")
+        box.write(f"center_y = {xyz[1]:.3f}\n")
+        box.write(f"center_z = {xyz[2]:.3f}\n")
+        box.write("\n")
+        box.write(f"size_x = {box_size}:.3f\n")
+        box.write(f"size_y = {box_size}:.3f\n")
+        box.write(f"size_z = {box_size}:.3f\n")
+        box.write("\n")
+        box.write("exhaustiveness = " + str(exhaustiveness) + "\n")
+        box.write("energy_range = " + str(energy_range) + "\n")
+        box.write("num_modes = " + str(num_modes) + "\n")
+    pass
+
+
+def generate_docking_box_in_one_partition(xyz_start, xyz_end, i: int,
+                                          box_size: float = 10.0):
+    boxes_x = np.arange(xyz_start[0], xyz_end[0], step=box_size)
+    boxes_y = np.arange(xyz_start[1], xyz_end[1], step=box_size)
+    boxes_z = np.arange(xyz_start[2], xyz_end[2], step=box_size)
+    for one_x in boxes_x:
+        for one_y in boxes_y:
+            for one_z in boxes_z:
+                generate_one_docking_box([one_x, one_y, one_z], index=i,
+                                         box_size=box_size)
+
+    pass
+
+
+def generate_docking_boxes(input_partitions, box_size: float = 10.0):
+    """
+    generates docking box files based on input partitions
+    ----------------------------------------------------------------------------
+    input_partitions:
+    list of tuples of bounds of input partitions
+
+    box_size: float
+    size of individual docking box
+    ----------------------------------------------------------------------------
+    Returns:
+    txt files of docking boxes for AutoDock Vina
+    """
+    index = 1
+    for p in input_partitions:
+        generate_docking_box_in_one_partition(p[0], p[1], i=index,
+                                              box_size=box_size)
+
+    pass
+
+
 if __name__ == "__main__":
     args = parser.parse_args()
     input_pdb = args.input_pdb
