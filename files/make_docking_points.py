@@ -102,7 +102,7 @@ def generate_one_docking_box(xyz, index: int, box_size: float = 10.0):
     energy_range = 100
     exhaustiveness = 20
     num_modes = 20
-    with open(box_prefix + f"{index}", 'w') as box:
+    with open(box_prefix + f"{index}.txt", 'w') as box:
         # file.write("receptor = " + str(receptor) + "\n")
         # file.write("ligand = " + str(ligand) + "\n")
         box.write("\n")
@@ -110,13 +110,14 @@ def generate_one_docking_box(xyz, index: int, box_size: float = 10.0):
         box.write(f"center_y = {xyz[1]:.3f}\n")
         box.write(f"center_z = {xyz[2]:.3f}\n")
         box.write("\n")
-        box.write(f"size_x = {box_size}:.3f\n")
-        box.write(f"size_y = {box_size}:.3f\n")
-        box.write(f"size_z = {box_size}:.3f\n")
+        box.write(f"size_x = {box_size:.3f}\n")
+        box.write(f"size_y = {box_size:.3f}\n")
+        box.write(f"size_z = {box_size:.3f}\n")
         box.write("\n")
         box.write("exhaustiveness = " + str(exhaustiveness) + "\n")
         box.write("energy_range = " + str(energy_range) + "\n")
         box.write("num_modes = " + str(num_modes) + "\n")
+    box.close()
     pass
 
 
@@ -130,8 +131,9 @@ def generate_docking_box_in_one_partition(xyz_start, xyz_end, i: int,
             for one_z in boxes_z:
                 generate_one_docking_box([one_x, one_y, one_z], index=i,
                                          box_size=box_size)
+                i += 1
 
-    pass
+    return i
 
 
 def generate_docking_boxes(input_partitions, box_size: float = 10.0):
@@ -149,10 +151,10 @@ def generate_docking_boxes(input_partitions, box_size: float = 10.0):
     """
     index = 1
     for p in input_partitions:
-        generate_docking_box_in_one_partition(p[0], p[1], i=index,
-                                              box_size=box_size)
+        index = generate_docking_box_in_one_partition(p[0], p[1], i=index,
+                                                      box_size=box_size)
 
-    pass
+    return index
 
 
 if __name__ == "__main__":
@@ -162,5 +164,7 @@ if __name__ == "__main__":
     atom_info = read_pdb(input_pdb)
     atoms_xyz = format_atom_info(atom_info)
     input_partitions = get_input_partitions(atoms_xyz, partitions=4)
+    num_of_boxes = generate_docking_boxes(input_partitions, box_size=15.0)
+    print(f"{num_of_boxes} boxes were generated")
 
     pass
