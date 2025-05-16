@@ -6,6 +6,7 @@ rm box*.txt AllSets.pdb AllScores.txt config.txt PredictedInternal.pdb temp_Pred
 
 ending="qt"
 pdbqt=$1$ending
+input_pdb=$1
 
 if [[ ! -s $pdbqt ]]; then
  ./pythonsh prepare_receptor4.py -r $1 -A bonds_hydrogens
@@ -22,6 +23,7 @@ cp new.pdbqt $pdbqt
 rm new.pdbqt
 
 #./make_config $pdbqt
+python make_docking_points.py -i $input_pdb -b 12
 
 #box_size=$2
 
@@ -174,5 +176,9 @@ cp placed.pdb refined.pdb
 ./choosing $cutoff_energy
 rm placed.pdb refined.pdb reform.pdb reform2.pdb
 
+structure_with_dowser=${input_pdb%.pdb}_with_dowser_waters.pdb
 
+python remove_clashes.py
+cat $1 no_clashes.pdb > $structure_with_dowser
 
+python refine_results.py -d no_clashes.pdb -s $structure_with_dowser -o ${structure_with_dowser%.pdb}_refined.pdb -c $cutoff_energy
