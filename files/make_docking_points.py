@@ -164,7 +164,7 @@ if __name__ == "__main__":
     atom_info = read_pdb(input_pdb)
     atoms_xyz = format_atom_info(atom_info)
     input_partitions = get_input_partitions(atoms_xyz, partitions=4)
-    num_of_boxes = generate_docking_boxes(input_partitions, box_size=15.0)
+    num_of_boxes = generate_docking_boxes(input_partitions, box_size=box_size)
     print(f"{num_of_boxes} boxes were generated")
 
     pass
