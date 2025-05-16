@@ -112,27 +112,19 @@ if __name__ == "__main__":
               ' -s structure_input -p refined_pdb -c cutoff')
     try:
         os.remove('re-eval.pdb')
-        os.remove('after_clashes_removal.pdb')
         os.remove(refined_pdb)
     except OSError:
         print("Did't find previous results")
     with open(dowser_o_input, 'r') as dowser_o:
         # dowser_data = read_dowser_water(dowser_o)
         dowser_data = [line for line in dowser_o.readlines()
-                       if 'ATOM' and ' O ' in line]
+                       if 'ATOM' and ' OW ' in line]
         num_of_water = len(dowser_data)
 
     with open(structure_input, 'r') as structure:
         structure_data = structure.readlines()
 
     re_eval = open('re-eval.pdb', 'a')
-    no_clashes = open('after_clashes_removal.pdb', 'a')
-
-    print(f"checking clashes of {len(dowser_data)} water molecules...")
-    dowser_data = remove_clashes(dowser_data, r=2.5)
-    no_clashes.writelines(dowser_data)
-
-    print(f"{len(dowser_data)} water molecules remain after checking clashes...")
 
     print(f"refining the energies of {len(dowser_data)} water molecules...")
     for i in range(len(dowser_data)):
