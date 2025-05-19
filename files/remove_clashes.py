@@ -40,7 +40,7 @@ def get_unique_dowser(coords_info, dowser_dict):
 def read_dowser_water(dowser_o):
     dowser_data_unique = {}
     dowser_file = dowser_o.readlines()
-    dowser_file = [line for line in dowser_file if 'ATOM' in line]
+    dowser_file = [line for line in dowser_file if 'ATOM' or 'HETATM' in line]
     coords_info = [line[30:67] for line in dowser_file]
     print(f"There are {int(len(coords_info) / 3)} waters before removing duplicates...")
     dowser_unique = get_unique_dowser(coords_info, dowser_data_unique)
@@ -97,6 +97,9 @@ if __name__ == "__main__":
 
     with open(dowser_input, 'r') as dowser_o:
         dowser_data = read_dowser_water(dowser_o)
+
+    with open('./no_duplicates.pdb', 'w') as no_dupes:
+        no_dupes.writelines(dowser_data)
 
     print(f"checking clashes of {len(dowser_data)} water molecules...")
     no_clash = remove_clashes(dowser_data, r=2.5, E_threshold=-10)
