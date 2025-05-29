@@ -66,7 +66,7 @@ def read_dowser_water(dowser_o):
     return dowser_data
 
 
-def remove_clashes(dowser_data, r: float = 2.5, E_threshold = -10):
+def remove_clashes(dowser_data, r: float = 2.5, E_threshold=-10):
     i = 0
     while i < len(dowser_data):
         dowser_xyz = np.array([x[30:54].split() for
@@ -102,8 +102,17 @@ if __name__ == "__main__":
         no_dupes.writelines(dowser_data)
 
     print(f"checking clashes of {len(dowser_data)} water molecules...")
-    no_clash = remove_clashes(dowser_data, r=2.5, E_threshold=-10)
-    print(f"{len(no_clash)} water molecules remain after checking clashes...")
+    no_clash = dowser_data
+    i = 1
+    while True:
+        print(f"round {i}...")
+        num_old = len(no_clash)
+        no_clash = remove_clashes(no_clash, r=2.5, E_threshold=-10)
+        num_new = len(no_clash)
+        i += 1
+        print(f"{num_new} water molecules remain after checking clashes...")
+        if num_old == num_new:
+            break
     with open(output_pdb, 'w') as output:
         output.writelines(no_clash)
     pass
