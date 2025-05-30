@@ -2,6 +2,7 @@ import numpy as np
 import os
 import subprocess
 import copy
+from tqdm import tqdm
 import argparse
 
 parser = argparse.ArgumentParser(
@@ -33,7 +34,7 @@ def run_reform(pdbin, pdbout):
 # HOH23_HETATM_docking_1.pdb
 def run_placeWat(dowser_pdb, current_water_pdb, output):
     placeWat_args = ('./placeWat', dowser_pdb, current_water_pdb, 'rotate')
-    print(placeWat_args)
+    # print(placeWat_args)
     popen = subprocess.Popen(placeWat_args, stdout=output, stderr=subprocess.DEVNULL)
     popen.wait()
 
@@ -43,8 +44,8 @@ def remove_disqualified_water(re_eval_pdb, cutoff):
         re_eval_results = rep.readlines()
     num_of_atoms = len(re_eval_results)
     refined = []
-    for i in range(0, num_of_atoms, 3):
-        print(f"checking water {int(i / 3 + 1)}...")
+    for i in tqdm(range(0, num_of_atoms, 3)):
+        # print(f"checking water {int(i / 3 + 1)}...", end='\n\r')
         energy_after_EM = float(re_eval_results[i][60:66])
         if energy_after_EM < cutoff:
             refined.append(re_eval_results[i])
@@ -74,7 +75,7 @@ def read_dowser_water(dowser_o):
     return dowser_data
 
 
-def remove_clashes(dowser_data, r: float = 2.5, E_threshold = -10):
+def remove_clashes(dowser_data, r: float = 2.5, E_threshold=-10):
     i = 0
     while i < len(dowser_data):
         dowser_xyz = np.array([x[30:54].split() for
@@ -98,6 +99,51 @@ def remove_clashes(dowser_data, r: float = 2.5, E_threshold = -10):
     return dowser_data
 
 
+def update_structure_data(dowser_data, structure_data):
+    protein_data = [line for line in structure_data if
+                    'HOH' not in line]
+    new_structure_data = protein_data + dowser_data
+    return new_structure_data
+
+
+def energy_minimize(dowser_data, structure_data):
+    re_eval = open('re-eval.pdb', 'a')
+    dowser_o = [line for line in dowser_data if ' OW ' in line]
+
+    for i in tqdm(range(len(dowser_o))):
+        current_water = dowser_o[i]
+        with open('current_water.pdb', 'w') as cw:
+            cw.write(current_water)
+        water_pos_in_structure = [line for line, x in enumerate(structure_data)
+                                  if x == current_water]
+        water_pos_in_structure = water_pos_in_structure[0]
+        current_structure = copy.deepcopy(structure_data)
+        current_structure = water_hetatm_replacement(water_pos_in_structure,
+                                                     current_structure)
+        current_water_hetatm_OW = current_structure[water_pos_in_structure]
+        current_water_hetatm_HW1 = current_structure[water_pos_in_structure+1]
+        current_water_hetatm_HW2 = current_structure[water_pos_in_structure+2]
+        print(f"water {i+1} is being changed to HETATM...\n", end='\r')
+        print(current_water_hetatm_OW + current_water_hetatm_HW1
+              + current_water_hetatm_HW2)
+        with open('current_structure.pdb', 'w') as cs:
+            cs.writelines(current_structure)
+
+        run_reform('current_structure.pdb', 'current_structure_DOWSER.pdb')
+        run_placeWat('current_structure_DOWSER.pdb',
+                     'current_water.pdb', re_eval)
+
+    refined_results = remove_disqualified_water('re-eval.pdb', cutoff)
+    updated_structure_data = update_structure_data(refined_results,
+                                                   structure_data)
+    os.remove('current_water.pdb')
+    os.remove('current_structure.pdb')
+    os.remove('current_structure_DOWSER.pdb')
+    re_eval.close()
+    os.remove('re-eval.pdb')
+    return refined_results, updated_structure_data
+
+
 if __name__ == "__main__":
     try:
         args = parser.parse_args()
@@ -118,43 +164,24 @@ if __name__ == "__main__":
     with open(dowser_o_input, 'r') as dowser_o:
         # dowser_data = read_dowser_water(dowser_o)
         dowser_data = [line for line in dowser_o.readlines()
-                       if 'ATOM' and ' OW ' in line]
-        num_of_water = len(dowser_data)
+                       if 'ATOM' and ' HOH ' in line]
+        num_of_water = int(len(dowser_data) / 3)
 
     with open(structure_input, 'r') as structure:
         structure_data = structure.readlines()
+    print(f"refining the energies of {num_of_water} water molecules...")
+    i = 1
+    while True:
+        print(f"round {i}...")
+        old_water_count = int(len(dowser_data) / 3)
+        refined_results, structure_data = energy_minimize(dowser_data,
+                                                          structure_data)
+        dowser_data = refined_results
+        new_water_count = int(len(refined_results) / 3)
+        if old_water_count == new_water_count:
+            break
+        i += 1
 
-    re_eval = open('re-eval.pdb', 'a')
-
-    print(f"refining the energies of {len(dowser_data)} water molecules...")
-    for i in range(len(dowser_data)):
-        current_water = dowser_data[i]
-        with open('current_water.pdb', 'w') as cw:
-            cw.write(current_water)
-        water_pos_in_structure = [l for l, x in enumerate(structure_data)
-                                  if x == current_water]
-        water_pos_in_structure = water_pos_in_structure[0]
-        current_structure = copy.deepcopy(structure_data)
-        current_structure = water_hetatm_replacement(water_pos_in_structure,
-                                                     current_structure)
-        current_water_hetatm_OW = current_structure[water_pos_in_structure]
-        current_water_hetatm_HW1 = current_structure[water_pos_in_structure+1]
-        current_water_hetatm_HW2 = current_structure[water_pos_in_structure+2]
-        print(f"water {i+1} is being changed to HETATM...")
-        print(current_water_hetatm_OW + current_water_hetatm_HW1
-              + current_water_hetatm_HW2)
-        with open('current_structure.pdb', 'w') as cs:
-            cs.writelines(current_structure)
-
-        run_reform('current_structure.pdb', 'current_structure_DOWSER.pdb')
-        run_placeWat('current_structure_DOWSER.pdb',
-                     'current_water.pdb', re_eval)
-
-    refined_results = remove_disqualified_water('re-eval.pdb', cutoff)
-    re_eval.close()
     with open(refined_pdb, 'w') as rp:
         rp.writelines(refined_results)
-    os.remove('current_water.pdb')
-    os.remove('current_structure.pdb')
-    os.remove('current_structure_DOWSER.pdb')
     pass
