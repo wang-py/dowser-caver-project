@@ -123,7 +123,7 @@ def energy_minimize(dowser_data, structure_data):
         current_water_hetatm_OW = current_structure[water_pos_in_structure]
         current_water_hetatm_HW1 = current_structure[water_pos_in_structure+1]
         current_water_hetatm_HW2 = current_structure[water_pos_in_structure+2]
-        print(f"water {i+1} is being changed to HETATM...\n", end='\r')
+        print(f"running energy minimization on water {i+1}...\n", end='\r')
         print(current_water_hetatm_OW + current_water_hetatm_HW1
               + current_water_hetatm_HW2)
         with open('current_structure.pdb', 'w') as cs:
