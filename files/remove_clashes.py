@@ -77,17 +77,48 @@ def remove_clashes(dowser_data, r: float = 2.5, E_threshold=-10):
         clash_with_others = np.setdiff1d(clash_i, np.array(i))
         if clash_with_others.any():
             c = np.setdiff1d(clash_i, np.array(i))[0]
-            if dowser_E[c] >= E_threshold and dowser_E[i] >= E_threshold:
+            # if dowser_E[c] >= E_threshold and dowser_E[i] >= E_threshold:
                 # if the other water has lower energy
-                if dowser_E[c] <= dowser_E[i]:
-                    # remove current water
-                    dowser_data.pop(i)
-                else:
-                    # remove the other water
-                    dowser_data.pop(c)
+            if dowser_E[c] <= dowser_E[i]:
+                # remove current water
+                dowser_data.pop(i)
+            else:
+                # remove the other water
+                dowser_data.pop(c)
         i += 1
 
     return dowser_data
+
+
+def add_mean_field_energy(dowser_data, shell_radius=3, E_mean_field=-5):
+    dowser_xyz = np.array([x[30:54].split() for
+                           x in dowser_data]).astype(float)
+    dowser_with_mean_field = []
+    for i in range(len(dowser_data)):
+        one_h2o = dowser_data[i]
+        one_xyz = np.array(one_h2o[30:54].split()).astype(float)
+        one_E = float(one_h2o[60:66].strip())
+        dist = np.sqrt(np.sum(np.square(dowser_xyz - one_xyz), axis=1))
+        within_shell = np.where(dist <= shell_radius)[0]
+        h2o_within_shell = np.setdiff1d(within_shell, np.array(i))
+
+        if h2o_within_shell.any():
+            dowser_E_new = one_E + E_mean_field
+            dowser_E_new_str = f"{dowser_E_new:6.2f}"
+            one_h2o_new = one_h2o[:60] + dowser_E_new_str + one_h2o[66:]
+        else:
+            one_h2o_new = one_h2o
+
+        dowser_with_mean_field.append(one_h2o_new)
+
+    return dowser_with_mean_field
+
+
+def energy_screening(dowser_data, E_cutoff=-4):
+    dowser_within_cutoff = [x for x in dowser_data
+                            if float(x[60:66]) < E_cutoff]
+
+    return dowser_within_cutoff
 
 
 if __name__ == "__main__":
@@ -97,6 +128,9 @@ if __name__ == "__main__":
 
     with open(dowser_input, 'r') as dowser_o:
         dowser_data = read_dowser_water(dowser_o)
+
+    E_cutoff = -4  # kcal
+    E_mean_field = -5  # kcal
 
     with open('./no_duplicates.pdb', 'w') as no_dupes:
         no_dupes.writelines(dowser_data)
@@ -113,6 +147,10 @@ if __name__ == "__main__":
         print(f"{num_new} water molecules remain after checking clashes...")
         if num_old == num_new:
             break
+    no_clash = add_mean_field_energy(no_clash, shell_radius=3,
+                                     E_mean_field=E_mean_field)
+    no_clash = energy_screening(no_clash, E_cutoff=E_cutoff)
+    print(f"{num_new} water molecules remain after energy screening...")
     with open(output_pdb, 'w') as output:
         output.writelines(no_clash)
     pass
