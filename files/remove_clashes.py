@@ -1,5 +1,6 @@
 import argparse
 import numpy as np
+import random
 
 
 class water:
@@ -78,7 +79,7 @@ def remove_clashes(dowser_data, r: float = 2.5, E_threshold=-10):
         if clash_with_others.any():
             c = np.setdiff1d(clash_i, np.array(i))[0]
             # if dowser_E[c] >= E_threshold and dowser_E[i] >= E_threshold:
-                # if the other water has lower energy
+            # if the other water has lower energy
             if dowser_E[c] <= dowser_E[i]:
                 # remove current water
                 dowser_data.pop(i)
@@ -88,6 +89,19 @@ def remove_clashes(dowser_data, r: float = 2.5, E_threshold=-10):
         i += 1
 
     return dowser_data
+
+
+def shuffle_water(dowser_data):
+    dowser_data_randomized = random.sample(dowser_data, len(dowser_data))
+    return dowser_data_randomized
+
+
+def sort_water_by_energy(dowser_data):
+    dowser_E = np.array([float(x[60:66]) for x in dowser_data])
+    dowser_arr = np.array(dowser_data)
+    dowser_data_sorted = dowser_arr[dowser_E.argsort()].tolist()
+
+    return dowser_data_sorted
 
 
 def add_mean_field_energy(dowser_data, shell_radius=3, E_mean_field=-5):
@@ -115,10 +129,13 @@ def add_mean_field_energy(dowser_data, shell_radius=3, E_mean_field=-5):
 
 
 def energy_screening(dowser_data, E_cutoff=-4):
+    total_E = 0
     dowser_within_cutoff = [x for x in dowser_data
                             if float(x[60:66]) < E_cutoff]
+    for one_dowser in dowser_within_cutoff:
+        total_E += float(one_dowser[60:66])
 
-    return dowser_within_cutoff
+    return dowser_within_cutoff, total_E
 
 
 if __name__ == "__main__":
@@ -128,6 +145,8 @@ if __name__ == "__main__":
 
     with open(dowser_input, 'r') as dowser_o:
         dowser_data = read_dowser_water(dowser_o)
+        # dowser_data = shuffle_water(dowser_data)
+        dowser_data = sort_water_by_energy(dowser_data)
 
     E_cutoff = -4  # kcal
     E_mean_field = -5  # kcal
@@ -149,8 +168,9 @@ if __name__ == "__main__":
             break
     no_clash = add_mean_field_energy(no_clash, shell_radius=3,
                                      E_mean_field=E_mean_field)
-    no_clash = energy_screening(no_clash, E_cutoff=E_cutoff)
+    # no_clash, total_E = energy_screening(no_clash, E_cutoff=E_cutoff)
     print(f"{num_new} water molecules remain after energy screening...")
+    # print(f"total energy is {total_E:.2f} kcal")
     with open(output_pdb, 'w') as output:
         output.writelines(no_clash)
     pass
