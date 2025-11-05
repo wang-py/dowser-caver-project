@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+import pandas as pd
 
 
 class water:
@@ -68,13 +69,23 @@ def read_dowser_water(dowser_o):
     return dowser_data
 
 
+def interaction_correction(dowser_E, n_neighbor, E_hbond=-2.5):
+    if n_neighbor <= 4:
+        dowser_E_corr = dowser_E + n_neighbor * E_hbond
+    else:
+        dowser_E_corr = dowser_E + 4 * E_hbond
+
+    return dowser_E_corr
+
+
 def check_hbond_neighbors(dowser_data, r=2.5, shell_thickness=0.5):
     neighbor_count = []
+    dowser_E_corr = []
+    dowser_E = np.array([float(x[60:66]) for x in dowser_data])
+    dowser_xyz = np.array([x[30:54].split() for
+                           x in dowser_data]).astype(float)
     for i in range(len(dowser_data)):
         print(f"checking water number {i + 1}...")
-        dowser_xyz = np.array([x[30:54].split() for
-                               x in dowser_data]).astype(float)
-        # dowser_E = np.array([float(x[60:66]) for x in dowser_data])
         dist = np.sqrt(np.sum(np.square(dowser_xyz - dowser_xyz[i]), axis=1))
         within_shell = np.intersect1d(np.where(dist > r),
                                       np.where(dist <= (r + shell_thickness)))
@@ -83,9 +94,17 @@ def check_hbond_neighbors(dowser_data, r=2.5, shell_thickness=0.5):
         dowser_within_shell = [dowser_data[x] for x in within_shell]
         dowser_within_shell = sort_water_by_energy(dowser_within_shell)
         remove_clashes(dowser_within_shell, r=2.5)
-        print(f"water number {i + 1} has {len(dowser_within_shell)} neighbors after removing clashes")
-        neighbor_count.append(len(dowser_within_shell))
+        n_neighbor = len(dowser_within_shell)
+        print(f"water number {i + 1} has {n_neighbor} neighbors after removing clashes")
+        neighbor_count.append(n_neighbor)
+        dowser_E_corr.append(interaction_correction(dowser_E[i], n_neighbor, E_hbond=-2.5))
     neighbor_count = np.array(neighbor_count)
+    dowser_E_corr = np.array(dowser_E_corr)
+    water_info = pd.DataFrame({"Dowser_E": dowser_E,
+                               "n_neighbor": neighbor_count,
+                               "Dowser_E_corr": dowser_E_corr})
+    print(water_info)
+    water_info.to_csv("water_info.csv")
     bins = np.arange(neighbor_count.min() - 0.5, neighbor_count.max() + 1.5, 1)
     plt.hist(neighbor_count, bins=bins)
     plt.xticks(np.arange(neighbor_count.min(), neighbor_count.max() + 1))
