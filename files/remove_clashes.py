@@ -93,8 +93,10 @@ def check_hbond_neighbors(dowser_data, r=2.5, shell_thickness=0.5):
         print(f"water number {i + 1} has {len(within_shell)} neighbors")
         dowser_within_shell = [dowser_data[x] for x in within_shell]
         dowser_within_shell = sort_water_by_energy(dowser_within_shell)
-        remove_clashes(dowser_within_shell, r=2.5)
+        dowser_within_shell = remove_clashes(dowser_within_shell, r=2.5)
         n_neighbor = len(dowser_within_shell)
+        with open(f"neighbors/water_{i+1}_neighbors.pdb", 'w') as neighbor_pdb:
+            neighbor_pdb.writelines(dowser_within_shell)
         print(f"water number {i + 1} has {n_neighbor} neighbors after removing clashes")
         neighbor_count.append(n_neighbor)
         dowser_E_corr.append(interaction_correction(dowser_E[i], n_neighbor, E_hbond=-2.5))
@@ -114,25 +116,34 @@ def check_hbond_neighbors(dowser_data, r=2.5, shell_thickness=0.5):
 
 
 def remove_clashes(dowser_data, r: float = 2.5, E_threshold=-10):
-    i = 0
-    while i < len(dowser_data):
-        dowser_xyz = np.array([x[30:54].split() for
-                               x in dowser_data]).astype(float)
-        dowser_E = np.array([float(x[60:66]) for x in dowser_data])
-        dist = np.sqrt(np.sum(np.square(dowser_xyz - dowser_xyz[i]), axis=1))
-        clash_i = np.where(dist <= r)[0]
-        clash_with_others = np.setdiff1d(clash_i, np.array(i))
-        if clash_with_others.any():
-            c = np.setdiff1d(clash_i, np.array(i))[0]
-            # if dowser_E[c] >= E_threshold and dowser_E[i] >= E_threshold:
-            # if the other water has lower energy
-            if dowser_E[c] <= dowser_E[i]:
-                # remove current water
-                dowser_data.pop(i)
-            else:
-                # remove the other water
-                dowser_data.pop(c)
-        i += 1
+    j = 1
+    while True:
+        print(f"round {j}...")
+        num_old = len(dowser_data)
+        i = 0
+        while i < len(dowser_data):
+            dowser_xyz = np.array([x[30:54].split() for
+                                   x in dowser_data]).astype(float)
+            dowser_E = np.array([float(x[60:66]) for x in dowser_data])
+            dist = np.sqrt(np.sum(np.square(dowser_xyz - dowser_xyz[i]), axis=1))
+            clash_i = np.where(dist <= r)[0]
+            clash_with_others = np.setdiff1d(clash_i, np.array(i))
+            if clash_with_others.any():
+                c = np.setdiff1d(clash_i, np.array(i))[0]
+                # if dowser_E[c] >= E_threshold and dowser_E[i] >= E_threshold:
+                # if the other water has lower energy
+                if dowser_E[c] <= dowser_E[i]:
+                    # remove current water
+                    dowser_data.pop(i)
+                else:
+                    # remove the other water
+                    dowser_data.pop(c)
+            i += 1
+        num_new = len(dowser_data)
+        j += 1
+        print(f"{num_new} water molecules remain after checking clashes...")
+        if num_old == num_new:
+            break
 
     return dowser_data
 
@@ -192,7 +203,7 @@ if __name__ == "__main__":
     with open(dowser_input, 'r') as dowser_o:
         dowser_data = read_dowser_water(dowser_o)
         # dowser_data = shuffle_water(dowser_data)
-        dowser_data = sort_water_by_energy(dowser_data)
+        # dowser_data = sort_water_by_energy(dowser_data)
 
     check_hbond_neighbors(dowser_data, r=2.5, shell_thickness=0.5)
     E_cutoff = -4  # kcal
@@ -202,19 +213,10 @@ if __name__ == "__main__":
         no_dupes.writelines(dowser_data)
 
     print(f"checking clashes of {len(dowser_data)} water molecules...")
-    no_clash = dowser_data
-    i = 1
-    while True:
-        print(f"round {i}...")
-        num_old = len(no_clash)
-        no_clash = remove_clashes(no_clash, r=2.5, E_threshold=-10)
-        num_new = len(no_clash)
-        i += 1
-        print(f"{num_new} water molecules remain after checking clashes...")
-        if num_old == num_new:
-            break
+    no_clash = remove_clashes(dowser_data, r=2.5, E_threshold=-10)
     no_clash = add_mean_field_energy(no_clash, shell_radius=3,
                                      E_mean_field=E_mean_field)
+    num_new = len(no_clash)
     # no_clash, total_E = energy_screening(no_clash, E_cutoff=E_cutoff)
     print(f"{num_new} water molecules remain after energy screening...")
     # print(f"total energy is {total_E:.2f} kcal")
