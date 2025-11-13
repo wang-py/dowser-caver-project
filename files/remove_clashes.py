@@ -105,7 +105,6 @@ def check_hbond_neighbors(dowser_data, r=2.5, shell_thickness=0.5):
     water_info = pd.DataFrame({"Dowser_E": dowser_E,
                                "n_neighbor": neighbor_count,
                                "Dowser_E_corr": dowser_E_corr})
-    print(water_info)
     water_info.to_csv("water_info.csv")
     bins = np.arange(neighbor_count.min() - 0.5, neighbor_count.max() + 1.5, 1)
     plt.hist(neighbor_count, bins=bins)
@@ -113,6 +112,8 @@ def check_hbond_neighbors(dowser_data, r=2.5, shell_thickness=0.5):
     plt.title("distribution of neighbor count within solvation shell")
     plt.xlabel("number of neighbors")
     plt.show()
+
+    return dowser_E_corr
 
 
 def remove_clashes(dowser_data, r: float = 2.5, E_threshold=-10):
@@ -161,24 +162,13 @@ def sort_water_by_energy(dowser_data):
     return dowser_data_sorted
 
 
-def add_mean_field_energy(dowser_data, shell_radius=3, E_mean_field=-5):
-    dowser_xyz = np.array([x[30:54].split() for
-                           x in dowser_data]).astype(float)
+def add_mean_field_energy(dowser_data, dowser_E_corr):
     dowser_with_mean_field = []
     for i in range(len(dowser_data)):
         one_h2o = dowser_data[i]
-        one_xyz = np.array(one_h2o[30:54].split()).astype(float)
-        one_E = float(one_h2o[60:66].strip())
-        dist = np.sqrt(np.sum(np.square(dowser_xyz - one_xyz), axis=1))
-        within_shell = np.where(dist <= shell_radius)[0]
-        h2o_within_shell = np.setdiff1d(within_shell, np.array(i))
-
-        if h2o_within_shell.any():
-            dowser_E_new = one_E + E_mean_field
-            dowser_E_new_str = f"{dowser_E_new:6.2f}"
-            one_h2o_new = one_h2o[:60] + dowser_E_new_str + one_h2o[66:]
-        else:
-            one_h2o_new = one_h2o
+        one_E = dowser_E_corr[i]
+        dowser_E_new_str = f"{one_E:6.2f}"
+        one_h2o_new = one_h2o[:60] + dowser_E_new_str + one_h2o[66:]
 
         dowser_with_mean_field.append(one_h2o_new)
 
@@ -203,9 +193,9 @@ if __name__ == "__main__":
     with open(dowser_input, 'r') as dowser_o:
         dowser_data = read_dowser_water(dowser_o)
         # dowser_data = shuffle_water(dowser_data)
-        # dowser_data = sort_water_by_energy(dowser_data)
+        dowser_data = sort_water_by_energy(dowser_data)
 
-    check_hbond_neighbors(dowser_data, r=2.5, shell_thickness=0.5)
+    dowser_E_corr = check_hbond_neighbors(dowser_data, r=2.5, shell_thickness=0.5)
     E_cutoff = -4  # kcal
     E_mean_field = -5  # kcal
 
@@ -213,9 +203,8 @@ if __name__ == "__main__":
         no_dupes.writelines(dowser_data)
 
     print(f"checking clashes of {len(dowser_data)} water molecules...")
+    dowser_data = add_mean_field_energy(dowser_data, dowser_E_corr)
     no_clash = remove_clashes(dowser_data, r=2.5, E_threshold=-10)
-    no_clash = add_mean_field_energy(no_clash, shell_radius=3,
-                                     E_mean_field=E_mean_field)
     num_new = len(no_clash)
     # no_clash, total_E = energy_screening(no_clash, E_cutoff=E_cutoff)
     print(f"{num_new} water molecules remain after energy screening...")
