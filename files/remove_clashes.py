@@ -54,13 +54,13 @@ def read_dowser_water(dowser_o):
     for i in range(len(keys)):
         current_water = dowser_unique[keys[i]]
         O_line = "ATOM  {:>5}".format(i + 1) +\
-                 "  OW  HOH A{:>4}    {}".format(i + 1,
+                 "  OW  HOH A{:>4}    {}".format(1,
                                                  current_water.OW)
         H1_line = "ATOM  {:>5}".format(i + 1) +\
-                  "  H1  HOH A{:>4}    {}".format(i + 1,
+                  "  H1  HOH A{:>4}    {}".format(1,
                                                   current_water.H1)
         H2_line = "ATOM  {:>5}".format(i + 1) +\
-                  "  H2  HOH A{:>4}    {}".format(i + 1,
+                  "  H2  HOH A{:>4}    {}".format(1,
                                                   current_water.H2)
 
         one_line = O_line + H1_line + H2_line
