@@ -81,31 +81,33 @@ def interaction_correction(dowser_E, n_neighbor, E_hbond=-2.5):
 def check_hbond_neighbors(dowser_data, r=2.5, shell_thickness=0.5):
     neighbor_count = []
     dowser_E_corr = []
-    dowser_E = np.array([float(x[60:66]) for x in dowser_data])
+    water_num = np.array([int(x[7:12].strip()) for x in dowser_data])
+    dowser_E = np.array([float(x[60:67]) for x in dowser_data])
     dowser_xyz = np.array([x[30:54].split() for
                            x in dowser_data]).astype(float)
     for i in range(len(dowser_data)):
-        print(f"checking water number {i + 1}...")
+        print(f"checking water number {water_num[i]}...")
         dist = np.sqrt(np.sum(np.square(dowser_xyz - dowser_xyz[i]), axis=1))
         within_shell = np.intersect1d(np.where(dist > r),
                                       np.where(dist <= (r + shell_thickness)))
         within_shell = within_shell.tolist()
-        print(f"water number {i + 1} has {len(within_shell)} neighbors")
+        print(f"water number {water_num[i]} has {len(within_shell)} neighbors")
         dowser_within_shell = [dowser_data[x] for x in within_shell]
         dowser_within_shell = sort_water_by_energy(dowser_within_shell)
         dowser_within_shell = remove_clashes(dowser_within_shell, r=2.5)
         n_neighbor = len(dowser_within_shell)
-        with open(f"neighbors/water_{i+1}_neighbors.pdb", 'w') as neighbor_pdb:
+        with open(f"neighbors/water_{water_num[i]}_neighbors.pdb", 'w') as neighbor_pdb:
             neighbor_pdb.writelines(dowser_within_shell)
-        print(f"water number {i + 1} has {n_neighbor} neighbors after removing clashes")
+        print(f"water number {water_num[i]} has {n_neighbor} neighbors after removing clashes")
         neighbor_count.append(n_neighbor)
         dowser_E_corr.append(interaction_correction(dowser_E[i], n_neighbor, E_hbond=-2.5))
     neighbor_count = np.array(neighbor_count)
     dowser_E_corr = np.array(dowser_E_corr)
-    water_info = pd.DataFrame({"Dowser_E": dowser_E,
+    water_info = pd.DataFrame({"water_num": water_num,
+                               "Dowser_E": dowser_E,
                                "n_neighbor": neighbor_count,
                                "Dowser_E_corr": dowser_E_corr})
-    water_info.to_csv("water_info.csv")
+    # water_info.to_csv("water_info.csv", index=False)
     bins = np.arange(neighbor_count.min() - 0.5, neighbor_count.max() + 1.5, 1)
     plt.hist(neighbor_count, bins=bins)
     plt.xticks(np.arange(neighbor_count.min(), neighbor_count.max() + 1))
@@ -113,7 +115,46 @@ def check_hbond_neighbors(dowser_data, r=2.5, shell_thickness=0.5):
     plt.xlabel("number of neighbors")
     plt.show()
 
-    return dowser_E_corr
+    return water_info
+
+
+def recheck_hbond_neighbors(dowser_data, water_info, r=2.5, shell_thickness=0.5):
+    neighbor_count = []
+    dowser_E_corr = []
+    water_info["neighbors_after"] = "removed"
+    water_num = np.array([int(x[7:12].strip()) for x in dowser_data])
+    dowser_E = np.array([float(x[60:67]) for x in dowser_data])
+    dowser_xyz = np.array([x[30:54].split() for
+                           x in dowser_data]).astype(float)
+    for i in range(len(dowser_data)):
+        water_i = water_num[i]
+        print(f"checking water number {water_i}...")
+        dist = np.sqrt(np.sum(np.square(dowser_xyz - dowser_xyz[i]), axis=1))
+        within_shell = np.intersect1d(np.where(dist > r),
+                                      np.where(dist <= (r + shell_thickness)))
+        within_shell = within_shell.tolist()
+        print(f"water number {water_i} has {len(within_shell)} neighbors")
+        dowser_within_shell = [dowser_data[x] for x in within_shell]
+        dowser_within_shell = sort_water_by_energy(dowser_within_shell)
+        dowser_within_shell = remove_clashes(dowser_within_shell, r=2.5)
+        n_neighbor = len(dowser_within_shell)
+        with open(f"neighbors_after/water_{water_i}_neighbors.pdb", 'w') as neighbor_pdb:
+            neighbor_pdb.writelines(dowser_within_shell)
+        print(f"water number {water_i} has {n_neighbor} neighbors after removing clashes")
+        dowser_E_corr.append(interaction_correction(dowser_E[i], n_neighbor, E_hbond=-2.5))
+        neighbor_count.append(n_neighbor)
+        water_info.loc[water_info["water_num"] == water_i, "neighbors_after"] = n_neighbor
+    neighbor_count = np.array(neighbor_count)
+    dowser_E_corr = np.array(dowser_E_corr)
+    water_info.to_csv("water_info_after.csv", index=False)
+    bins = np.arange(neighbor_count.min() - 0.5, neighbor_count.max() + 1.5, 1)
+    plt.hist(neighbor_count, bins=bins)
+    plt.xticks(np.arange(neighbor_count.min(), neighbor_count.max() + 1))
+    plt.title("distribution of neighbor count within solvation shell")
+    plt.xlabel("number of neighbors")
+    plt.show()
+
+    return water_info
 
 
 def remove_clashes(dowser_data, r: float = 2.5, E_threshold=-10):
@@ -125,7 +166,7 @@ def remove_clashes(dowser_data, r: float = 2.5, E_threshold=-10):
         while i < len(dowser_data):
             dowser_xyz = np.array([x[30:54].split() for
                                    x in dowser_data]).astype(float)
-            dowser_E = np.array([float(x[60:66]) for x in dowser_data])
+            dowser_E = np.array([float(x[60:67]) for x in dowser_data])
             dist = np.sqrt(np.sum(np.square(dowser_xyz - dowser_xyz[i]), axis=1))
             clash_i = np.where(dist <= r)[0]
             clash_with_others = np.setdiff1d(clash_i, np.array(i))
@@ -155,7 +196,7 @@ def shuffle_water(dowser_data):
 
 
 def sort_water_by_energy(dowser_data):
-    dowser_E = np.array([float(x[60:66]) for x in dowser_data])
+    dowser_E = np.array([float(x[60:67]) for x in dowser_data])
     dowser_arr = np.array(dowser_data)
     dowser_data_sorted = dowser_arr[dowser_E.argsort()].tolist()
 
@@ -178,9 +219,9 @@ def add_mean_field_energy(dowser_data, dowser_E_corr):
 def energy_screening(dowser_data, E_cutoff=-4):
     total_E = 0
     dowser_within_cutoff = [x for x in dowser_data
-                            if float(x[60:66]) < E_cutoff]
+                            if float(x[60:67]) < E_cutoff]
     for one_dowser in dowser_within_cutoff:
-        total_E += float(one_dowser[60:66])
+        total_E += float(one_dowser[60:67])
 
     return dowser_within_cutoff, total_E
 
@@ -195,7 +236,8 @@ if __name__ == "__main__":
         # dowser_data = shuffle_water(dowser_data)
         dowser_data = sort_water_by_energy(dowser_data)
 
-    dowser_E_corr = check_hbond_neighbors(dowser_data, r=2.5, shell_thickness=0.5)
+    water_info = check_hbond_neighbors(dowser_data, r=2.5, shell_thickness=0.5)
+    dowser_E_corr = water_info["Dowser_E_corr"]
     E_cutoff = -4  # kcal
     E_mean_field = -5  # kcal
 
@@ -208,6 +250,8 @@ if __name__ == "__main__":
     num_new = len(no_clash)
     # no_clash, total_E = energy_screening(no_clash, E_cutoff=E_cutoff)
     print(f"{num_new} water molecules remain after energy screening...")
+    water_info = recheck_hbond_neighbors(no_clash, water_info=water_info, r=2.5,
+                                         shell_thickness=0.5)
     # print(f"total energy is {total_E:.2f} kcal")
     with open(output_pdb, 'w') as output:
         output.writelines(no_clash)
