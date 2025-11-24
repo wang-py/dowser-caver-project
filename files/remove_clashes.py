@@ -18,6 +18,7 @@ parser = argparse.ArgumentParser(
         description='a script that analyzes and refines dowser results')
 parser.add_argument('-d', '--dowser_input', type=str,
                     default='PredictedInternal.pdb')
+parser.add_argument('-s', '--solvent_input', type=str)
 parser.add_argument('-o', '--output_pdb', type=str, default='no_clashes.pdb')
 
 
@@ -68,6 +69,15 @@ def read_dowser_water(dowser_o):
         dowser_data.append(one_line)
 
     return dowser_data
+
+
+def read_solvent_water(solvent_o):
+    solvent_file = solvent_o.readlines()
+    solvent_data = [line for line in solvent_file if 'SOL' and 'OW' in line]
+    solvent_coords = np.array([np.array(line[30:56].split()).astype(float)
+                               for line in solvent_data])
+
+    return solvent_coords
 
 
 def interaction_correction(dowser_E, n_neighbor, E_hbond=-2.5):
@@ -230,12 +240,16 @@ def energy_screening(dowser_data, E_cutoff=-4):
 if __name__ == "__main__":
     args = parser.parse_args()
     dowser_input = args.dowser_input
+    solvent_input = args.solvent_input
     output_pdb = args.output_pdb
 
     with open(dowser_input, 'r') as dowser_o:
         dowser_data = read_dowser_water(dowser_o)
         # dowser_data = shuffle_water(dowser_data)
         dowser_data = sort_water_by_energy(dowser_data)
+
+    with open(solvent_input, 'r') as solvent_o:
+        solvent_coords = read_solvent_water(solvent_o)
 
     water_info = check_hbond_neighbors(dowser_data, r=2.5, shell_thickness=0.5)
     dowser_E_corr = water_info["Dowser_E_corr"]
