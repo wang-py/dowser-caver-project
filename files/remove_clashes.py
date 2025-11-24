@@ -3,6 +3,7 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 import pandas as pd
+from tqdm import tqdm
 
 
 class water:
@@ -53,13 +54,13 @@ def read_dowser_water(dowser_o):
     keys = list(dowser_unique.keys())
     for i in range(len(keys)):
         current_water = dowser_unique[keys[i]]
-        O_line = "ATOM  {:>5}".format(i + 1) +\
+        O_line = "ATOM  {:>5}".format(i % 99999 + 1) +\
                  "  OW  HOH A{:>4}    {}".format(1,
                                                  current_water.OW)
-        H1_line = "ATOM  {:>5}".format(i + 1) +\
+        H1_line = "ATOM  {:>5}".format(i % 99999 + 1) +\
                   "  H1  HOH A{:>4}    {}".format(1,
                                                   current_water.H1)
-        H2_line = "ATOM  {:>5}".format(i + 1) +\
+        H2_line = "ATOM  {:>5}".format(i % 99999 + 1) +\
                   "  H2  HOH A{:>4}    {}".format(1,
                                                   current_water.H2)
 
@@ -85,20 +86,20 @@ def check_hbond_neighbors(dowser_data, r=2.5, shell_thickness=0.5):
     dowser_E = np.array([float(x[60:67]) for x in dowser_data])
     dowser_xyz = np.array([x[30:54].split() for
                            x in dowser_data]).astype(float)
-    for i in range(len(dowser_data)):
-        print(f"checking water number {water_num[i]}...")
+    print("checking water neighbors...")
+    for i in tqdm(range(len(dowser_data))):
         dist = np.sqrt(np.sum(np.square(dowser_xyz - dowser_xyz[i]), axis=1))
         within_shell = np.intersect1d(np.where(dist > r),
                                       np.where(dist <= (r + shell_thickness)))
         within_shell = within_shell.tolist()
-        print(f"water number {water_num[i]} has {len(within_shell)} neighbors")
+        # print(f"water number {water_num[i]} has {len(within_shell)} neighbors")
         dowser_within_shell = [dowser_data[x] for x in within_shell]
         dowser_within_shell = sort_water_by_energy(dowser_within_shell)
         dowser_within_shell = remove_clashes(dowser_within_shell, r=2.5)
         n_neighbor = len(dowser_within_shell)
-        with open(f"neighbors/water_{water_num[i]}_neighbors.pdb", 'w') as neighbor_pdb:
-            neighbor_pdb.writelines(dowser_within_shell)
-        print(f"water number {water_num[i]} has {n_neighbor} neighbors after removing clashes")
+        # with open(f"neighbors/water_{water_num[i]}_neighbors.pdb", 'w') as neighbor_pdb:
+        #     neighbor_pdb.writelines(dowser_within_shell)
+        # print(f"water number {water_num[i]} has {n_neighbor} neighbors after removing clashes")
         neighbor_count.append(n_neighbor)
         dowser_E_corr.append(interaction_correction(dowser_E[i], n_neighbor, E_hbond=-2.5))
     neighbor_count = np.array(neighbor_count)
@@ -126,21 +127,21 @@ def recheck_hbond_neighbors(dowser_data, water_info, r=2.5, shell_thickness=0.5)
     dowser_E = np.array([float(x[60:67]) for x in dowser_data])
     dowser_xyz = np.array([x[30:54].split() for
                            x in dowser_data]).astype(float)
-    for i in range(len(dowser_data)):
+    print("checking water neighbors...")
+    for i in tqdm(range(len(dowser_data))):
         water_i = water_num[i]
-        print(f"checking water number {water_i}...")
         dist = np.sqrt(np.sum(np.square(dowser_xyz - dowser_xyz[i]), axis=1))
         within_shell = np.intersect1d(np.where(dist > r),
                                       np.where(dist <= (r + shell_thickness)))
         within_shell = within_shell.tolist()
-        print(f"water number {water_i} has {len(within_shell)} neighbors")
+        # print(f"water number {water_i} has {len(within_shell)} neighbors")
         dowser_within_shell = [dowser_data[x] for x in within_shell]
         dowser_within_shell = sort_water_by_energy(dowser_within_shell)
         dowser_within_shell = remove_clashes(dowser_within_shell, r=2.5)
         n_neighbor = len(dowser_within_shell)
-        with open(f"neighbors_after/water_{water_i}_neighbors.pdb", 'w') as neighbor_pdb:
-            neighbor_pdb.writelines(dowser_within_shell)
-        print(f"water number {water_i} has {n_neighbor} neighbors after removing clashes")
+        # with open(f"neighbors_after/water_{water_i}_neighbors.pdb", 'w') as neighbor_pdb:
+        #     neighbor_pdb.writelines(dowser_within_shell)
+        # print(f"water number {water_i} has {n_neighbor} neighbors after removing clashes")
         dowser_E_corr.append(interaction_correction(dowser_E[i], n_neighbor, E_hbond=-2.5))
         neighbor_count.append(n_neighbor)
         water_info.loc[water_info["water_num"] == water_i, "neighbors_after"] = n_neighbor
@@ -160,7 +161,7 @@ def recheck_hbond_neighbors(dowser_data, water_info, r=2.5, shell_thickness=0.5)
 def remove_clashes(dowser_data, r: float = 2.5, E_threshold=-10):
     j = 1
     while True:
-        print(f"round {j}...")
+        # print(f"round {j}...")
         num_old = len(dowser_data)
         i = 0
         while i < len(dowser_data):
@@ -183,7 +184,7 @@ def remove_clashes(dowser_data, r: float = 2.5, E_threshold=-10):
             i += 1
         num_new = len(dowser_data)
         j += 1
-        print(f"{num_new} water molecules remain after checking clashes...")
+        # print(f"{num_new} water molecules remain after checking clashes...")
         if num_old == num_new:
             break
 
