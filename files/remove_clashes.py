@@ -18,7 +18,7 @@ parser = argparse.ArgumentParser(
         description='a script that analyzes and refines dowser results')
 parser.add_argument('-d', '--dowser_input', type=str,
                     default='PredictedInternal.pdb')
-parser.add_argument('-s', '--solvent_input', type=str)
+parser.add_argument('-s', '--solvent_input', type=str, default=None)
 parser.add_argument('-o', '--output_pdb', type=str, default='no_clashes.pdb')
 
 
@@ -89,13 +89,25 @@ def interaction_correction(dowser_E, n_neighbor, E_hbond=-2.5):
     return dowser_E_corr
 
 
-def check_hbond_neighbors(dowser_data, r=2.5, shell_thickness=0.5):
+def check_solvent_within_shell(water_coord, solvent_coords, r=2.5, shell_thickness=0.5):
+    dist = np.sqrt(np.sum(np.square(solvent_coords - water_coord), axis=1))
+    within_shell = np.intersect1d(np.where(dist > r),
+                                  np.where(dist <= (r + shell_thickness)))
+    within_shell = within_shell.tolist()
+    # print(f"water number {water_num[i]} has {len(within_shell)} neighbors")
+    solvent_within_shell = [solvent_coords[x] for x in within_shell]
+
+    return solvent_within_shell
+
+
+def check_hbond_neighbors(dowser_data, solvent_coords, r=2.5, shell_thickness=0.5):
     neighbor_count = []
     dowser_E_corr = []
     water_num = np.array([int(x[7:12].strip()) for x in dowser_data])
     dowser_E = np.array([float(x[60:67]) for x in dowser_data])
     dowser_xyz = np.array([x[30:54].split() for
                            x in dowser_data]).astype(float)
+    solvent_within_shell = []
     print("checking water neighbors...")
     for i in tqdm(range(len(dowser_data))):
         dist = np.sqrt(np.sum(np.square(dowser_xyz - dowser_xyz[i]), axis=1))
@@ -106,7 +118,12 @@ def check_hbond_neighbors(dowser_data, r=2.5, shell_thickness=0.5):
         dowser_within_shell = [dowser_data[x] for x in within_shell]
         dowser_within_shell = sort_water_by_energy(dowser_within_shell)
         dowser_within_shell = remove_clashes(dowser_within_shell, r=2.5)
-        n_neighbor = len(dowser_within_shell)
+        if solvent_coords.any():
+            solvent_within_shell = check_solvent_within_shell(dowser_xyz[i],
+                                                              solvent_coords,
+                                                              r=2.5,
+                                                              shell_thickness=0.5)
+        n_neighbor = len(dowser_within_shell) + len(solvent_within_shell)
         # with open(f"neighbors/water_{water_num[i]}_neighbors.pdb", 'w') as neighbor_pdb:
         #     neighbor_pdb.writelines(dowser_within_shell)
         # print(f"water number {water_num[i]} has {n_neighbor} neighbors after removing clashes")
@@ -129,7 +146,8 @@ def check_hbond_neighbors(dowser_data, r=2.5, shell_thickness=0.5):
     return water_info
 
 
-def recheck_hbond_neighbors(dowser_data, water_info, r=2.5, shell_thickness=0.5):
+def recheck_hbond_neighbors(dowser_data, water_info, solvent_coords,
+                            r=2.5, shell_thickness=0.5):
     neighbor_count = []
     dowser_E_corr = []
     water_info["neighbors_after"] = "removed"
@@ -137,7 +155,8 @@ def recheck_hbond_neighbors(dowser_data, water_info, r=2.5, shell_thickness=0.5)
     dowser_E = np.array([float(x[60:67]) for x in dowser_data])
     dowser_xyz = np.array([x[30:54].split() for
                            x in dowser_data]).astype(float)
-    print("checking water neighbors...")
+    solvent_within_shell = []
+    print("re-checking water neighbors...")
     for i in tqdm(range(len(dowser_data))):
         water_i = water_num[i]
         dist = np.sqrt(np.sum(np.square(dowser_xyz - dowser_xyz[i]), axis=1))
@@ -148,11 +167,16 @@ def recheck_hbond_neighbors(dowser_data, water_info, r=2.5, shell_thickness=0.5)
         dowser_within_shell = [dowser_data[x] for x in within_shell]
         dowser_within_shell = sort_water_by_energy(dowser_within_shell)
         dowser_within_shell = remove_clashes(dowser_within_shell, r=2.5)
-        n_neighbor = len(dowser_within_shell)
+        if solvent_coords.any():
+            solvent_within_shell = check_solvent_within_shell(dowser_xyz[i],
+                                                              solvent_coords,
+                                                              r=2.5,
+                                                              shell_thickness=0.5)
+        n_neighbor = len(dowser_within_shell) + len(solvent_within_shell)
         # with open(f"neighbors_after/water_{water_i}_neighbors.pdb", 'w') as neighbor_pdb:
         #     neighbor_pdb.writelines(dowser_within_shell)
         # print(f"water number {water_i} has {n_neighbor} neighbors after removing clashes")
-        dowser_E_corr.append(interaction_correction(dowser_E[i], n_neighbor, E_hbond=-2.5))
+        # dowser_E_corr.append(interaction_correction(dowser_E[i], n_neighbor, E_hbond=-2.5))
         neighbor_count.append(n_neighbor)
         water_info.loc[water_info["water_num"] == water_i, "neighbors_after"] = n_neighbor
     neighbor_count = np.array(neighbor_count)
@@ -248,10 +272,13 @@ if __name__ == "__main__":
         # dowser_data = shuffle_water(dowser_data)
         dowser_data = sort_water_by_energy(dowser_data)
 
-    with open(solvent_input, 'r') as solvent_o:
-        solvent_coords = read_solvent_water(solvent_o)
+    if solvent_input:
+        with open(solvent_input, 'r') as solvent_o:
+            solvent_coords = read_solvent_water(solvent_o)
+    else:
+        solvent_coords = None
 
-    water_info = check_hbond_neighbors(dowser_data, r=2.5, shell_thickness=0.5)
+    water_info = check_hbond_neighbors(dowser_data, solvent_coords, r=2.5, shell_thickness=0.5)
     dowser_E_corr = water_info["Dowser_E_corr"]
     E_cutoff = -4  # kcal
     E_mean_field = -5  # kcal
@@ -265,7 +292,8 @@ if __name__ == "__main__":
     num_new = len(no_clash)
     # no_clash, total_E = energy_screening(no_clash, E_cutoff=E_cutoff)
     print(f"{num_new} water molecules remain after energy screening...")
-    water_info = recheck_hbond_neighbors(no_clash, water_info=water_info, r=2.5,
+    water_info = recheck_hbond_neighbors(no_clash, water_info=water_info,
+                                         solvent_coords=solvent_coords, r=2.5,
                                          shell_thickness=0.5)
     # print(f"total energy is {total_E:.2f} kcal")
     with open(output_pdb, 'w') as output:
