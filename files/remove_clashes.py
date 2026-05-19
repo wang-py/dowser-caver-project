@@ -18,6 +18,8 @@ parser = argparse.ArgumentParser(
         description='a script that analyzes and refines dowser results')
 parser.add_argument('-d', '--dowser_input', type=str,
                     default='PredictedInternal.pdb')
+parser.add_argument('-i', '--cluster_index', type=int,
+                    default=1)
 parser.add_argument('-s', '--solvent_input', type=str, default=None)
 parser.add_argument('-o', '--output_pdb', type=str, default='no_clashes.pdb')
 
@@ -42,7 +44,7 @@ def get_unique_dowser(coords_info, dowser_dict):
     return dowser_unique
 
 
-def read_dowser_water(dowser_o):
+def read_dowser_water(dowser_o, cluster_index):
     dowser_data_unique = {}
     dowser_file = dowser_o.readlines()
     dowser_file = [line for line in dowser_file if 'ATOM' or 'HETATM' in line]
@@ -56,13 +58,13 @@ def read_dowser_water(dowser_o):
     for i in range(len(keys)):
         current_water = dowser_unique[keys[i]]
         O_line = "ATOM  {:>5}".format(i % 99999 + 1) +\
-                 "  OW  HOH A{:>4}    {}".format(1,
+                 "  OW  HOH A{:>4}    {}".format(cluster_index,
                                                  current_water.OW)
         H1_line = "ATOM  {:>5}".format(i % 99999 + 1) +\
-                  "  H1  HOH A{:>4}    {}".format(1,
+                  "  H1  HOH A{:>4}    {}".format(cluster_index,
                                                   current_water.H1)
         H2_line = "ATOM  {:>5}".format(i % 99999 + 1) +\
-                  "  H2  HOH A{:>4}    {}".format(1,
+                  "  H2  HOH A{:>4}    {}".format(cluster_index,
                                                   current_water.H2)
 
         one_line = O_line + H1_line + H2_line
@@ -118,7 +120,7 @@ def check_hbond_neighbors(dowser_data, solvent_coords, r=2.5, shell_thickness=0.
         dowser_within_shell = [dowser_data[x] for x in within_shell]
         dowser_within_shell = sort_water_by_energy(dowser_within_shell)
         dowser_within_shell = remove_clashes(dowser_within_shell, r=2.5)
-        if solvent_coords.any():
+        if solvent_coords is not None:
             solvent_within_shell = check_solvent_within_shell(dowser_xyz[i],
                                                               solvent_coords,
                                                               r=2.5,
@@ -135,13 +137,13 @@ def check_hbond_neighbors(dowser_data, solvent_coords, r=2.5, shell_thickness=0.
                                "Dowser_E": dowser_E,
                                "n_neighbor": neighbor_count,
                                "Dowser_E_corr": dowser_E_corr})
-    # water_info.to_csv("water_info.csv", index=False)
-    bins = np.arange(neighbor_count.min() - 0.5, neighbor_count.max() + 1.5, 1)
-    plt.hist(neighbor_count, bins=bins)
-    plt.xticks(np.arange(neighbor_count.min(), neighbor_count.max() + 1))
-    plt.title("distribution of neighbor count within solvation shell")
-    plt.xlabel("number of neighbors")
-    plt.show()
+    water_info.to_csv("water_info.csv", index=False)
+    # bins = np.arange(neighbor_count.min() - 0.5, neighbor_count.max() + 1.5, 1)
+    # plt.hist(neighbor_count, bins=bins)
+    # plt.xticks(np.arange(neighbor_count.min(), neighbor_count.max() + 1))
+    # plt.title("distribution of neighbor count within solvation shell")
+    # plt.xlabel("number of neighbors")
+    # plt.show()
 
     return water_info
 
@@ -167,7 +169,7 @@ def recheck_hbond_neighbors(dowser_data, water_info, solvent_coords,
         dowser_within_shell = [dowser_data[x] for x in within_shell]
         dowser_within_shell = sort_water_by_energy(dowser_within_shell)
         dowser_within_shell = remove_clashes(dowser_within_shell, r=2.5)
-        if solvent_coords.any():
+        if solvent_coords is not None:
             solvent_within_shell = check_solvent_within_shell(dowser_xyz[i],
                                                               solvent_coords,
                                                               r=2.5,
@@ -182,12 +184,12 @@ def recheck_hbond_neighbors(dowser_data, water_info, solvent_coords,
     neighbor_count = np.array(neighbor_count)
     dowser_E_corr = np.array(dowser_E_corr)
     water_info.to_csv("water_info_after.csv", index=False)
-    bins = np.arange(neighbor_count.min() - 0.5, neighbor_count.max() + 1.5, 1)
-    plt.hist(neighbor_count, bins=bins)
-    plt.xticks(np.arange(neighbor_count.min(), neighbor_count.max() + 1))
-    plt.title("distribution of neighbor count within solvation shell")
-    plt.xlabel("number of neighbors")
-    plt.show()
+    # bins = np.arange(neighbor_count.min() - 0.5, neighbor_count.max() + 1.5, 1)
+    # plt.hist(neighbor_count, bins=bins)
+    # plt.xticks(np.arange(neighbor_count.min(), neighbor_count.max() + 1))
+    # plt.title("distribution of neighbor count within solvation shell")
+    # plt.xlabel("number of neighbors")
+    # plt.show()
 
     return water_info
 
@@ -264,11 +266,12 @@ def energy_screening(dowser_data, E_cutoff=-4):
 if __name__ == "__main__":
     args = parser.parse_args()
     dowser_input = args.dowser_input
+    cluster_index = args.cluster_index
     solvent_input = args.solvent_input
     output_pdb = args.output_pdb
 
     with open(dowser_input, 'r') as dowser_o:
-        dowser_data = read_dowser_water(dowser_o)
+        dowser_data = read_dowser_water(dowser_o, cluster_index)
         # dowser_data = shuffle_water(dowser_data)
         dowser_data = sort_water_by_energy(dowser_data)
 
@@ -287,7 +290,7 @@ if __name__ == "__main__":
         no_dupes.writelines(dowser_data)
 
     print(f"checking clashes of {len(dowser_data)} water molecules...")
-    dowser_data = add_mean_field_energy(dowser_data, dowser_E_corr)
+    # dowser_data = add_mean_field_energy(dowser_data, dowser_E_corr)
     no_clash = remove_clashes(dowser_data, r=2.5, E_threshold=-10)
     num_new = len(no_clash)
     # no_clash, total_E = energy_screening(no_clash, E_cutoff=E_cutoff)
